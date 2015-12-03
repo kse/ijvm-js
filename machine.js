@@ -305,6 +305,19 @@ var machine = (function() {
 			res = res >>> 1;
 		}
 
+
+		// if the result is beyond the range of what we can represent with 32
+		// bits, adjust it.
+		if (res < 0) {
+			while (res < -Math.pow(2,31) ) {
+				res += Math.pow(2,32)|0;
+			}
+		} else {
+			while (res >= Math.pow(2,31) ) {
+				res -= Math.pow(2,32)|0;
+			}
+		}
+
 		if (res < 0) {
 			this.N = 1;
 		} else {

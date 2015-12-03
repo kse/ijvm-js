@@ -5,6 +5,8 @@
 %%
 \n                      {return 'ENDLINE';}
 [^\n\S]+                {/* skip whitespace */}
+"//"[^\n]*              {/* skip oneline comments */}
+"/*"(.|\n|\r)*?"*/"     {/* skip multiline comments (no nesting) */}
 "("                     {return '(';}
 ")"                     {return ')';}
 "="                     {return '=';}

@@ -210,8 +210,6 @@ function main(microCode) {
 	editor = ace.edit("editor");
 	editor.$blockScrolling = Infinity;
 	editor.setTheme("ace/theme/github");
-	//editor.getSession().setMode("ace/mode/javascript");
-	//editor.getSession().addGutterDecoration(1, "red");
 	editorSession = editor.getSession();
 	var editorDocument = editorSession.getDocument();
 	editorDocument.setValue(microCode);

@@ -12,4 +12,4 @@ The file "mic1.mal" was taken from the github repository kse/ijvm-tools,
 containing code written by Kristian Høgsberg, and is distributed under the
 GPLv2 license. This license can be found in the respective repository.
 
-Copyright Kasper Sacharias Roos Eenberg <kse@mahavira.dk>
+Copyright 2015 by Kasper Sacharias Roos Eenberg

@@ -3,23 +3,6 @@
 main:
         PC = PC + 1; fetch; goto (MBR)
 
-
-bar = 0x20 :
-		OPC = MBRU
-		MDR = 0
-		H = 1
-bar1: 
-		Z = TOS AND H; if (Z) goto bar3; else goto bar2
-bar2: 
-		MDR = MDR + 1
-bar3:	
-		Z = OPC = OPC - 1; if (Z) goto bar5; else goto bar4
-bar4: 
-		TOS = TOS >> 1; goto bar1
-bar5: 
-		MAR = SP; wr
-		TOS = MDR; goto main
-
 nop = 0x00:
         goto main
 

@@ -73,79 +73,6 @@ var stack_visualization = (function() {
 	return stack;
 }());
 
-function assign_addresses(microinstructions) {
-	var control_store = [];
-	var jumps = {}, labels = {}, freeptr = 0;
-	var i, na;
-
-	// Resolve all microinstructions that have a predefined position.
-	for (i = 0; i < microinstructions.length; i++) {
-		na = microinstructions[i].addr;
-		if (isInt(na)) {
-			control_store[na] = i;
-		} 
-		
-		na = microinstructions[i].nextaddress;
-		if (!!na && na.constructor === Array) {
-			jumps[na[1]] = na[0];
-		}
-	}
-
-	// Layout the necesarry jumps instructions.
-	var key;
-	for (key in jumps) {
-		if (jumps.hasOwnProperty(key)) {
-			while (!!control_store[freeptr] || !!control_store[freeptr + 256]) {
-				freeptr++;
-			}
-
-			labels[key] = freeptr;
-			control_store[freeptr] = 0xdeadbeef; // Store non-zero value
-
-			labels[jumps[key]] = freeptr + 256;
-			control_store[freeptr + 256] = 0xdeadbeef; // Store non-zero value
-			freeptr++;
-		}
-	}
-
-	freeptr = 0;
-	for (i = 0; i < microinstructions.length; i++) {
-		na = microinstructions[i].label;
-
-		if (labels.hasOwnProperty(na)) {
-			// We have already assigned labels to these.
-			control_store[labels[na]] = i;
-			microinstructions[i].addr = labels[na];
-		} else if(!isInt(microinstructions[i].nextaddress)) {
-			while (!!control_store[freeptr]) {
-				freeptr++;
-			}
-
-			control_store[freeptr] = i;
-			microinstructions[i].addr = freeptr;
-			if (!!na) {
-				labels[na] = freeptr;
-			}
-		}
-	}
-
-	for (i = 0; i < microinstructions.length; i++) {
-		na = microinstructions[i].nextaddress;
-		if (!!na && !isInt(na)) {
-			if (na.constructor === Array) {
-				microinstructions[i].nextaddress = labels[na[1]];
-			} else {
-				microinstructions[i].nextaddress = labels[na];
-			}
-		} else if (!isInt(na)) {
-			microinstructions[i].nextaddress = microinstructions[i+1].addr;
-		}
-	}
-
-	//console.log(labels);
-
-	return {control: control_store, entrypoint: labels.mic1_entry};
-}
 
 function parse_microcode(microCode) {
 	var ast = parser.parse(microCode);
@@ -166,17 +93,17 @@ function parse_microcode(microCode) {
 
 	var store = assign_addresses(microinstructions);
 	var mic1 = new machine(store, microinstructions, [0x00]);
-	stack = new stack_visualization(mic1.registers.CPP);
+	//stack = new stack_visualization(mic1.registers.CPP);
 
 	mic1.setRegisterWriteCallback(function(reg, v) {
 		//console.log("Writing", v, "in", reg);
 		$("#s" + reg).html(reg + ":" + v);
-		stack.registerWriteCallback(reg, v);
+		//stack.registerWriteCallback(reg, v);
 	});
 
 	mic1.setMemoryWriteCallback(function(val, idx) {
 		$("#stack").html(mic1.memory.stackArea);
-		stack.memoryWriteCallback(val, idx);
+		//stack.memoryWriteCallback(val, idx);
 	});
 
 	mic1.setInstructionCallback(function(mOp, na) {
@@ -200,31 +127,6 @@ function parse_microcode(microCode) {
 	return mic1;
 }
 
-function initializeEditors(microCode, ijvmCode) {
-	malEditor = new aceEditor('mal-editor');
-	malEditor.setContents(microCode);
-
-	//$('#mal-editor').addClass('invisible');
-
-	ijvmEditor = new aceEditor('ijvm-editor');
-	ijvmEditor.setContents(ijvmCode);
-
-	$('#editor-nav a').click(function(e) {
-		var el = $(e.target).parent();
-
-		$('#editor-nav li').removeClass('active');	
-		el.addClass('active');
-
-		$('#editor-container').children('.editor').each(function() {
-			$(this).addClass('invisible');
-		});
-
-		var edName = el.data('display');
-		$('#' + edName).removeClass('invisible');
-	});
-}
-
-
 function main(microCode, ijvmCode) {
 	initializeEditors(microCode, ijvmCode);
 
@@ -240,8 +142,7 @@ function main(microCode, ijvmCode) {
 	});
 
 	$("#btn-reset").click(function() {
-		stack.reset();
-		//mic1 = parse_microcode(editorDocument.getValue());
+		//stack.reset();
 		mic1 = parse_microcode(malEditor.getContents());
 		malEditor.clearHighlight();
 	});
@@ -250,23 +151,3 @@ function main(microCode, ijvmCode) {
 		byteCode = new bytecode(ijvmEditor.getContents());
 	});
 }
-
-function loadInitialIVJMCode(microCode) {
-	$.ajax({
-		url: "imul.j",
-		dataType: "text",
-		success: function(h) {
-			$('#ijvmcode').html(h);
-			main(microCode, h);
-		}
-	});
-}
-
-$.ajax({
-	url: "mic1.mal",
-	dataType: "text",
-	success: function(h) {
-		$('#microcode').html(h);
-		loadInitialIVJMCode(h);
-	}
-});

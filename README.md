@@ -14,7 +14,7 @@ GPLv2 license. This license can be found in the respective repository.
 
 Copyright 2015 by Kasper Sacharias Roos Eenberg
 
-## Knows Issues
+## Known Issues
 
 The program is in a rough state right now, since it is still a work in
 progress, thus there are several know limitations. Specifically, be aware of
@@ -34,3 +34,4 @@ the following.
 	written before SP is decremented below it. A more ideal thing would be to
 	create an idealized stack layout when changing IJVM command, while also
 	showing the *real* stack layout (including pointers).
+- The result of the computation is only shown in the console.

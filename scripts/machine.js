@@ -52,7 +52,7 @@ define(['memory'],
 				this.registers.H = this.mainIndex; // Required by starting point.
 				this.registers.LV = this.maWords;
 				this.registers.SP = this.maWords + this.constantPool.length;
-				this.registers.PC = this.constantPool[this.mainIndex];
+				this.registers.PC = 0;
 			};
 
 			machine.prototype.start = function(args) {
@@ -61,9 +61,11 @@ define(['memory'],
 					throw new Error("Machine already started");
 				}
 
+				this.started = true;
+
 				this.memory.stackArea.push(88); // Push OBJREF
 				args.forEach(function(item) {
-					me.memory.stackArea.push(item);
+					me.memory.stackArea.push(item); // Push function arguments
 				});
 
 				this.registers.SP += args.length;
@@ -83,7 +85,6 @@ define(['memory'],
 				var that = this;
 				this.memory.stackArea.forEach(function(item, idx) {
 					if (typeof that.memoryWriteCallback === 'function') {
-						console.log("here");
 						that.memoryWriteCallback(item, idx + that.maWords);
 					}
 				});
@@ -104,17 +105,20 @@ define(['memory'],
 			};
 
 			machine.prototype.simulateInstruction = function() {
+				if (!this.started) {
+					throw new Error("Machine has not been started");
+				}
+
 				var mOp = this.microInstructions[this.controlStore[this.instruction]],
 					strOpts = "[" + (mOp.f0|0) + (mOp.f1|0) + (mOp.ena|0) +
 					(mOp.enb|0) + (mOp.inva|0) + (mOp.inc|0) + "]",
 					res = 0,
 					src;
 
-				console.log(mOp);
 				this.memory.cycle();
 
 				if (!!mOp.label) {
-					console.log("Now at label", mOp.label);
+					//console.log("Now at label", mOp.label);
 
 					if (typeof this.mainCallback === 'function') {
 						this.mainCallback();

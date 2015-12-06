@@ -64,6 +64,9 @@ require(['jQuery', 'machine', 'aceEditor',
 
 			$("#btn-step").click(function() {
 				mic1.step();
+				if (mic1.done) {
+					console.log("Result:", mic1.result);
+				}
 			});
 
 			$("#btn-run").click(function() {
@@ -81,7 +84,7 @@ require(['jQuery', 'machine', 'aceEditor',
 			$("#btn-compile").click(function() {
 				var MAL = malCompiler(malEditor.getContents());
 				var IJVM = new ijvmCompiler(ijvmEditor.getContents());
-				console.log(IJVM);
+				//console.log(IJVM);
 
 				//byteCode = new bytecode(ijvmEditor.getContents());
 				mic1 = new machine(MAL.store, MAL.microInstructions, IJVM.constantPool, IJVM.methods.main, IJVM.byteCode);
@@ -94,7 +97,7 @@ require(['jQuery', 'machine', 'aceEditor',
 				});
 
 				mic1.setMemoryWriteCallback(function(val, idx) {
-					$("#stack").html(mic1.memory.stackArea);
+					$("#stack").html(mic1.memory.stackArea.join(','));
 					//stack.memoryWriteCallback(val, idx);
 				});
 
@@ -115,7 +118,7 @@ require(['jQuery', 'machine', 'aceEditor',
 
 				mic1.refreshRegisterCallback();
 				mic1.refreshStackCallback();
-				mic1.start([2, 3]);
+				mic1.start([3, 1]);
 			});
 
 		});

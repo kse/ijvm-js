@@ -1,4 +1,4 @@
-/*global document:true*/
+/*global document:true, alert:true*/
 require.config({
 	paths: {
 		'jQuery': 'jquery-2.1.4.min',
@@ -27,7 +27,8 @@ require(['jQuery', 'machine', 'aceEditor',
 		function($, machine, aceEditor, malCompiler, ijvmCompiler, ijvmCode, microCode){
 
 			var malEditor, ijvmEditor, mic1 = null;
-			//
+			var MAL, IJVM = null;
+
 			// Stolen from: http://stackoverflow.com/questions/14636536/how-to-check-if-a-variable-is-an-integer-in-javascript
 			function isInt(value) {
 				var x;
@@ -36,6 +37,22 @@ require(['jQuery', 'machine', 'aceEditor',
 				}
 				x = parseFloat(value);
 				return (x | 0) === x;
+			}
+
+			function startMic1() {
+				var args = $('#arg-input').val();
+				var re = /^(\d+\s*)+$/g;
+
+				if (!re.test(args)) {
+					console.log("Test failed");
+					alert("Parameters invalid");
+					return;
+				}
+
+				var s = args.trim().split(/\s+/).map(function(item) {
+					return parseInt(item, 10);
+				});
+				mic1.start(s);
 			}
 
 			function initializeEditors(microCode, ijvmCode) {
@@ -78,12 +95,18 @@ require(['jQuery', 'machine', 'aceEditor',
 
 			$("#btn-reset").click(function() {
 				//stack.reset();
-				malEditor.clearHighlight();
+				if (mic1 !== null && mic1.started) {
+					mic1.reset();
+					malEditor.clearHighlight();
+					mic1.refreshRegisterCallback();
+					mic1.refreshStackCallback();
+					startMic1();
+				}
 			});
 
 			$("#btn-compile").click(function() {
-				var MAL = malCompiler(malEditor.getContents());
-				var IJVM = new ijvmCompiler(ijvmEditor.getContents());
+				MAL = malCompiler(malEditor.getContents());
+				IJVM = new ijvmCompiler(ijvmEditor.getContents());
 				//console.log(IJVM);
 
 				//byteCode = new bytecode(ijvmEditor.getContents());
@@ -118,7 +141,7 @@ require(['jQuery', 'machine', 'aceEditor',
 
 				mic1.refreshRegisterCallback();
 				mic1.refreshStackCallback();
-				mic1.start([3, 1]);
+				startMic1();
 			});
 
 		});

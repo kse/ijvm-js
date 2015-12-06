@@ -46,6 +46,19 @@
 		.stackarea {
 			padding-top: 40px;
 		}
+
+		.arglabel {
+			text-align: right;
+			width: 100%;
+		}
+
+		.small {
+			font-size:10px;
+		}
+
+		#arg-input {
+			width: 100%;
+		}
 	</style>
 	<script data-main="scripts/main" src="scripts/require.js"></script>
 </head>
@@ -123,6 +136,17 @@
 					<button type="button" class="btn btn-default" id="btn-compile">RECOMPILE</button>
 					</div>
 				</div>
+			</div>
+
+			<div class="col-sm-6 pull-right">
+			<div class="col-sm-6">
+				<div class="arglabel">
+					<label for="arg-input">Arguments <span class="small">(space separated)</span>:</label>
+				</div>
+			</div>
+			<div class="col-sm-6 pull-right">
+				<input type="text" id="arg-input"/>
+			</div>
 			</div>
 
 		</div>

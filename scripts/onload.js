@@ -1,4 +1,4 @@
-/*global machine:true, parser:true, $:true, ace:true*/
+/*global machine:true, parser:true, $:true, ace:true, aceEditor:true, bytecode:true*/
 
 /**
  *  - No check is being done that we don't allocate more than 512 control stores.
@@ -8,10 +8,9 @@
 var mic1;
 var stack;
 
-var currentInstruction = null;
-var highlightedInstruction = null;
-var editorSession;
-var editor;
+var malEditor;
+var ijvmEditor;
+var byteCode;
 
 // Stolen from: http://stackoverflow.com/questions/14636536/how-to-check-if-a-variable-is-an-integer-in-javascript
 function isInt(value) {
@@ -36,7 +35,7 @@ var stack_visualization = (function() {
 	};
 
 	stack.prototype.memoryWriteCallback = function(val, idx) {
-		console.log("Memory offset:", idx, "value:", val, "extent:", this.extent);
+		//console.log("Memory offset:", idx, "value:", val, "extent:", this.extent);
 		if (idx > this.extent) {
 			// Assume we only write one above.
 			this.pushElement(val);
@@ -49,12 +48,14 @@ var stack_visualization = (function() {
 
 	stack.prototype.registerWriteCallback = function(reg, v) {
 		if (reg === 'SP') {
-			console.log("SP Written:", v);
-			if (v < this.extent) {
-				console.log("SP Decreased");
-				// Assume only one element is removed at a time.
-				$('#stackarea :first-child').remove();
-			} else {
+			//console.log("SP Written:", v);
+			if (v + 1 < this.extent) {
+				while (v + 1 < this.extent) {
+					// Assume only one element is removed at a time.
+					$('#stackarea :first-child').remove();
+					this.extent--;
+				}
+			} else if (v > this.extent) {
 				this.pushElement('#');
 			}
 		}
@@ -179,15 +180,9 @@ function parse_microcode(microCode) {
 	});
 
 	mic1.setInstructionCallback(function(mOp, na) {
-		if (isInt(highlightedInstruction)) {
-			editorSession.removeGutterDecoration(highlightedInstruction, "curInst");
-		}
-
 		if (isInt(mOp.lineNumber)) {
-			editorSession.addGutterDecoration(mOp.lineNumber - 1, "curInst");
-			editor.moveCursorToPosition({row: mOp.lineNumber - 1, column: 0});
-			editor.scrollToLine(mOp.lineNumber - 1, true, false, null);
-			highlightedInstruction = mOp.lineNumber - 1;
+			malEditor.scrollTo(mOp.lineNumber - 1);
+			malEditor.highlight(mOp.lineNumber - 1);
 		} else {
 			console.log("Missing linenumber:", mOp);
 		}
@@ -205,14 +200,33 @@ function parse_microcode(microCode) {
 	return mic1;
 }
 
+function initializeEditors(microCode, ijvmCode) {
+	malEditor = new aceEditor('mal-editor');
+	malEditor.setContents(microCode);
 
-function main(microCode) {
-	editor = ace.edit("editor");
-	editor.$blockScrolling = Infinity;
-	editor.setTheme("ace/theme/github");
-	editorSession = editor.getSession();
-	var editorDocument = editorSession.getDocument();
-	editorDocument.setValue(microCode);
+	//$('#mal-editor').addClass('invisible');
+
+	ijvmEditor = new aceEditor('ijvm-editor');
+	ijvmEditor.setContents(ijvmCode);
+
+	$('#editor-nav a').click(function(e) {
+		var el = $(e.target).parent();
+
+		$('#editor-nav li').removeClass('active');	
+		el.addClass('active');
+
+		$('#editor-container').children('.editor').each(function() {
+			$(this).addClass('invisible');
+		});
+
+		var edName = el.data('display');
+		$('#' + edName).removeClass('invisible');
+	});
+}
+
+
+function main(microCode, ijvmCode) {
+	initializeEditors(microCode, ijvmCode);
 
 	$('#mal-input').val(microCode);
 	mic1 = parse_microcode(microCode);
@@ -227,11 +241,24 @@ function main(microCode) {
 
 	$("#btn-reset").click(function() {
 		stack.reset();
-		mic1 = parse_microcode(editorDocument.getValue());
-		if (isInt(highlightedInstruction)) {
-			editorSession.removeGutterDecoration(highlightedInstruction, "curInst");
+		//mic1 = parse_microcode(editorDocument.getValue());
+		mic1 = parse_microcode(malEditor.getContents());
+		malEditor.clearHighlight();
+	});
+
+	$("#btn-compile").click(function() {
+		byteCode = new bytecode(ijvmEditor.getContents());
+	});
+}
+
+function loadInitialIVJMCode(microCode) {
+	$.ajax({
+		url: "imul.j",
+		dataType: "text",
+		success: function(h) {
+			$('#ijvmcode').html(h);
+			main(microCode, h);
 		}
-		highlightedInstruction = null;
 	});
 }
 
@@ -240,6 +267,6 @@ $.ajax({
 	dataType: "text",
 	success: function(h) {
 		$('#microcode').html(h);
-		main(h);
+		loadInitialIVJMCode(h);
 	}
 });

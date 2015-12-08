@@ -5,7 +5,7 @@
 %%
 \n+                     {return 'ENDLINE';}
 [^\n\S]+                {/* skip whitespace */}
-\/\/[^\n]*                  {/* skip singeline comment */}
+"//"[^\n]*              {/* skip singeline comment */}
 "/*"(.|\n|\r)*?"*/"     {/* skip multiline comments (no nesting) */}
 ([0-9]+|0x[0-9A-F]+)\b  {return 'INTEGER';} /* TODO: Match binary */
 bipush\b                {return 'BIPUSH';}
@@ -64,7 +64,7 @@ empty   : ENDLINE
 	
 methods : methods method
 			{$$ = $1.concat($2);}
-		| empty
+		| methods ENDLINE
 			{$$ = []}
 		|
 			{$$ = []}
@@ -76,8 +76,10 @@ method : METHOD SYMBOL ENDLINE directives insns
 		}
 	   ;
 
-directives : directive ENDLINE directives
-			{ $$ = [$1].concat($3); }
+directives : directive directives
+			{ 
+				$$ = [$1].concat($2); 
+			}
 		   | {$$ = [];}
 		   ;
 
@@ -96,6 +98,8 @@ directive : ARG expr
 					return env;
 				}
 			}
+		  | ENDLINE
+			{$$ = [];}
 		  ;
 
 expr : INTEGER
@@ -135,8 +139,8 @@ expr : INTEGER
 		}
 	 ;
 
-insns   : insn ENDLINE insns
-			{$$ = [$1].concat($3);}
+insns   : insn insns
+			{$$ = [$1].concat($2);}
 		| {$$ = [];}
 		;
 
@@ -182,6 +186,8 @@ insn    : BIPUSH expr
 			{$$ = ['wide'];}
 		| SYMBOL COLON
 			{$$ = ['LABEL', $1];}
+		| ENDLINE
+			{$$ = [];}
 		;
 
 %%
@@ -222,6 +228,9 @@ var method = (function() {
 		});
 
 		insns.forEach(function(e) {
+			if (e.length == 0) {
+				return;
+			}
 			var insn = e[0];
 			var f = null;
 			var bc = [];
@@ -236,7 +245,7 @@ var method = (function() {
 				}
 
 				if (!m.hasOwnProperty(insn)) {
-					throw new Error("Unable to find instruction");
+					throw new Error("Unable to find instruction: " + insn);
 				}
 
 				var bc = [];

@@ -3,31 +3,14 @@
 %options case-insensitive
 
 %%
-\n+                     {return 'ENDLINE';}
+\n                      {
+							console.log(lexer);
+							return 'ENDLINE';
+						}
 [^\n\S]+                {/* skip whitespace */}
 "//"[^\n]*              {/* skip singeline comment */}
 "/*"(.|\n|\r)*?"*/"     {/* skip multiline comments (no nesting) */}
 ([0-9]+|0x[0-9A-F]+)\b  {return 'INTEGER';} /* TODO: Match binary */
-bipush\b                {return 'BIPUSH';}
-dup\b                   {return 'DUP';}
-goto\b                  {return 'GOTO';}
-iadd\b                  {return 'IADD';}
-iand\b                  {return 'IAND';}
-ifeq\b                  {return 'IFEQ';}
-iflt\b                  {return 'IFLT';}
-if_icmpeq\b             {return 'IFICMPEQ';}
-iinc\b                  {return 'IINC';}
-iload\b                 {return 'ILOAD';}
-invokevirtual\b         {return 'INVOKEVIRTUAL';}
-ior\b                   {return 'IOR';}
-ireturn\b               {return 'IRETURN';}
-istore\b                {return 'ISTORE';}
-isub\b                  {return 'ISUB';}
-ldc_w\b                 {return 'LDCW';}
-nop\b                   {return 'NOP';}
-pop\b                   {return 'POP';}
-swap\b                  {return 'SWAP';}
-wide\b                  {return 'WIDE';}
 ".method"\b             {return 'METHOD';}
 ".args"\b               {return 'ARG';}
 ".locals"\b             {return 'LOCAL';}
@@ -39,7 +22,7 @@ wide\b                  {return 'WIDE';}
 "="                     {return 'EQUAL';}
 ","                     {return 'COMMA';}
 ":"                     {return 'COLON';}
-[a-zA-Z]\w*             {return 'SYMBOL';}
+([a-zA-Z]|_|-)\w*       {return 'SYMBOL';}
 <<EOF>>                 {return 'EOF';}
 
 
@@ -55,60 +38,82 @@ wide\b                  {return 'WIDE';}
 
 %% /* language grammar */
 
-program : methods EOF
-			{return $1;}
-	    ;
+program
+	: empty methods EOF
+		{return $2;}
+	;
 
-empty   : ENDLINE
-	    ;
-	
-methods : methods method
-			{$$ = $1.concat($2);}
-		| methods ENDLINE
-			{$$ = []}
-		|
-			{$$ = []}
-		;
+empty
+	: empty ENDLINE
+	| ENDLINE
+	;
 
-method : METHOD SYMBOL ENDLINE directives insns
+methods
+	: method methods
+		{$$ = $1.concat($2);}
+	| method
+		{$$ = [$1]}
+	;
+
+method
+	: METHOD SYMBOL empty dirsection insnssection
 		{
 			$$ = new method($2, $4, $5);
 		}
-	   ;
+	;
 
-directives : directive directives
-			{ 
-				$$ = [$1].concat($2); 
-			}
-		   | {$$ = [];}
-		   ;
+dirsection
+	: ENDLINE dirsection
+	| directives
+	;
 
-directive : ARG expr
-			{$$ = ['ARGS', $2];}
-		  | LOCAL expr
-			{$$ = ['LOCALS', $2];}
-		  | DEFINE SYMBOL EQUAL expr
-			{
-				$$ = function(env) {
-					if (env.hasOwnProperty($2)) {
-						throw new Error("Redefinition of variable " + $2 + " on line " +  yylineno);
-					}
+insnssection
+	: ENDLINE insnssection
+	| insns
+	;
 
-					env[$2] = $4(env);
-					return env;
+directives
+	: directives empty directive
+		{
+			$$ = $1;
+		}
+	| directive
+		{
+			$$ = [$1];
+		}
+	| directives directive
+		{
+			$$ = $1;
+			$$.push($2);
+		}
+	;
+
+directive
+	: ARG expr ENDLINE
+		{$$ = ['ARGS', $2];}
+	| LOCAL expr ENDLINE
+		{$$ = ['LOCALS', $2];}
+	| DEFINE SYMBOL EQUAL expr ENDLINE
+		{
+			$$ = ['DEFINE', function(env) {
+				if (env.hasOwnProperty($2)) {
+					throw new Error("Redefinition of variable " + $2 + " on line " +  yylineno);
 				}
-			}
-		  | ENDLINE
-			{$$ = [];}
-		  ;
 
-expr : INTEGER
+				env[$2] = $4(env);
+				return env;
+			}]
+		}
+	;
+
+expr
+	: INTEGER
 		{
 			$$ = function() {
 				return $1|0;
 			};
 		}
-	 | SYMBOL
+	| SYMBOL
 		{
 			$$ = function(env) {
 				if (!env.hasOwnProperty($1)) {
@@ -117,78 +122,63 @@ expr : INTEGER
 				return env[$1]|0;
 			};
 		}
-	 | expr PLUS expr
-	 	{
+	| expr PLUS expr
+		{
 			$$ = new exprFun($1, $3,
 				(function (a,b) {return a + b}),
 				_$
 				);
 		}
-	 | expr MINUS expr
-	 	{
+	| expr MINUS expr
+		{
 			$$ = new exprFun($1, $3,
 				(function (a,b) {return a - b}),
 				_$
 				);
 		}
-	 | LPAREN expr RPAREN
-	 	{
+	| LPAREN expr RPAREN
+		{
 			$$ = function(env) {
 				return $2(env);
 			}
 		}
-	 ;
+	;
 
-insns   : insn insns
-			{$$ = [$1].concat($2);}
-		| {$$ = [];}
-		;
+insns
+	: insns empty insn
+		{$$ = $2;}
+	| insn
+		{$$ = [$1];}
+	| insns insn
+		{
+			$$ = [$1];
+			$$.push($2);
+		}
+	;
 
-insn    : BIPUSH expr
-			{$$ = ['bipush', $2];}
-		| DUP
-			{$$ = ['dup'];}
-		| GOTO SYMBOL
-			{$$ = ['goto', $2];}
-		| IADD
-			{$$ = ['iadd'];}
-		| IAND
-			{$$ = ['iand'];}
-		| IFEQ SYMBOL
-			{$$ = ['ifeq', $2];}
-		| IFLT SYMBOL
-			{$$ = ['iflt', $2];}
-		| IFICMPEQ SYMBOL
-			{$$ = ['if_icmpeq', $2];}
-		| IINC expr COMMA expr
-			{$$ = ['iinc', $2, $3];}
-		| ILOAD expr
-			{$$ = ['iload', $2];}
-		| INVOKEVIRTUAL SYMBOL
-			{$$ = ['invokevirtual', $2];}
-		| IOR
-			{$$ = ['ior'];}
-		| IRETURN
-			{$$ = ['ireturn'];}
-		| ISTORE expr
-			{$$ = ['istore', $2];}
-		| ISUB
-			{$$ = ['isub'];}
-		| LDCW expr
-			{$$ = ['ldc_w', $2];}
-		| NOP
-			{$$ = ['nop'];}
-		| POP
-			{$$ = ['pop'];}
-		| SWAP
-			{$$ = ['swap'];}
-		| WIDE
-			{$$ = ['wide'];}
-		| SYMBOL COLON
+insn    : SYMBOL exprs ENDLINE
+			{$$ = [$1, $2];}
+		| SYMBOL COLON SYMBOL exprs ENDLINE
+			{$$ = [$1, $2];}
+		| SYMBOL ENDLINE
+			{$$ = [$1, $2];}
+		| SYMBOL COLON SYMBOL ENDLINE
+			{$$ = [$1, $2];}
+		| SYMBOL COLON ENDLINE
 			{$$ = ['LABEL', $1];}
-		| ENDLINE
-			{$$ = [];}
 		;
+
+exprs
+	: exprs expr
+		{
+			$1.push(expr)
+			$$ = $1;
+		}
+	| expr
+		{
+			$$ = [$1];
+		}
+	;
 
 %%
 
@@ -218,8 +208,8 @@ var method = (function() {
 		var me = this;
 
 		directives.forEach(function(e, idx) {
-			if (typeof e === 'function') {
-				me.locals = e(me.locals);
+			if (e[0] === 'DEFINE') {
+				me.locals = e[1](me.locals);
 			} else if (e[0] === 'LOCALS') {
 				me.nlocals = e[1](me.locals);
 			} else if (e[0] === 'ARGS') {

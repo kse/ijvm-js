@@ -3,10 +3,7 @@
 %options case-insensitive
 
 %%
-\n                      {
-							console.log(lexer);
-							return 'ENDLINE';
-						}
+\n                      {return 'ENDLINE';}
 [^\n\S]+                {/* skip whitespace */}
 "//"[^\n]*              {/* skip singeline comment */}
 "/*"(.|\n|\r)*?"*/"     {/* skip multiline comments (no nesting) */}
@@ -24,9 +21,7 @@
 ":"                     {return 'COLON';}
 ([a-zA-Z]|_|-)\w*       {return 'SYMBOL';}
 <<EOF>>                 {return 'EOF';}
-
-
-
+$                 {return 'EOF';}
 /lex
 
 %left PLUS
@@ -39,7 +34,7 @@
 %% /* language grammar */
 
 program
-	: empty methods EOF
+	: empty methods
 		{return $2;}
 	;
 
@@ -49,33 +44,28 @@ empty
 	;
 
 methods
-	: method methods
+	: methods method
 		{$$ = $1.concat($2);}
 	| method
 		{$$ = [$1]}
 	;
 
 method
-	: METHOD SYMBOL empty dirsection insnssection
+	: METHOD SYMBOL empty directives empty insns empty
+		{
+			$$ = new method($2, $4, $6);
+		}
+	| METHOD SYMBOL empty directives empty insns
 		{
 			$$ = new method($2, $4, $5);
 		}
-	;
-
-dirsection
-	: ENDLINE dirsection
-	| directives
-	;
-
-insnssection
-	: ENDLINE insnssection
-	| insns
 	;
 
 directives
 	: directives empty directive
 		{
 			$$ = $1;
+			$$.push($3);
 		}
 	| directive
 		{
@@ -146,12 +136,15 @@ expr
 
 insns
 	: insns empty insn
-		{$$ = $2;}
+		{
+			$$ = $1;
+			$$.push($3);
+		}
 	| insn
 		{$$ = [$1];}
 	| insns insn
 		{
-			$$ = [$1];
+			$$ = $1;
 			$$.push($2);
 		}
 	;

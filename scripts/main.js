@@ -22,7 +22,7 @@ require.config({
 require(['jQuery', 'machine', 'aceEditor', 
 		'malCompiler',
 		'ijvmCompiler',
-		'text!../resource/imul.j',
+		'text!../testfiles/fac.j',
 		'text!../resource/mic1.mal'],
 		function($, machine, aceEditor, malCompiler, ijvmCompiler, ijvmCode, microCode){
 
@@ -115,7 +115,8 @@ require(['jQuery', 'machine', 'aceEditor',
 
 				mic1.setRegisterWriteCallback(function(reg, v) {
 					//console.log("Writing", v, "in", reg);
-					$("#s" + reg).html(reg + ":" + v);
+					$('svg rect').css('fill', 'none');
+					$("#s" + reg).html(reg + ":" + v).prev().css('fill', '#efefef');
 					//stack.registerWriteCallback(reg, v);
 				});
 

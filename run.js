@@ -91,24 +91,19 @@ function assign_addresses(microinstructions) {
 	return control_store;
 }
 
-fs.readFile('imul.j', 'utf8', function(err, data) {
+fs.readFile('testfiles/fac.j', 'utf8', function(err, data) {
     if (err) {
         console.log("ERROR: ", err);
         return false;
     }
 
 	var ast = parser.parse(data);
-	//console.log(ast);
 	var constantPool = [];
 	var methods      = {};
 	var i, sum = 0;
-	ast.forEach(function(e) {
-		methods[e.name] = constantPool.length;
-		constantPool.push(0);
-	});
+	this.errors = [];
 
-	ast.forEach(function(e) {
-		e.generateBytecode({
+	var spec = {
 			'bipush':        [0x10, ['byte']],
 			'dup':           [0x59, []],
 			'goto':          [0xA7, ['label']],
@@ -130,16 +125,33 @@ fs.readFile('imul.j', 'utf8', function(err, data) {
 			'swap':          [0x5F, []],
 			'wide':          [0xC4, []],
 			'dec':           [0x78, []],
-		}, constantPool, methods);
+		};
+
+	ast.forEach(function(e) {
+		if (methods.hasOwnProperty(e.name)) {
+			this.errors.push(["Duplicate method name " + e.name, e.loc]);
+		} else {
+			methods[e.name] = constantPool.length;
+			constantPool.push(sum);
+		}
+
+		e.generateBytecode(spec, constantPool, methods);
+		sum += e.byteCode.length;
+	});
+
+	ast.forEach(function(e) {
+		e.resolvers.forEach(function(b) {
+			b(0, constantPool, methods, e.labels);
+		});
 	});
 
 	var bc = [];
 
 	for (i = 0; i < ast.length; i++) {
-		constantPool[i] = sum;
 		sum += ast[i].nBytes;
-
 		bc = bc.concat(ast[i].byteCode);
+
+		this.errors = this.errors.concat(ast[i].errors);
 	}
 
 	var str = "",
@@ -165,6 +177,7 @@ fs.readFile('imul.j', 'utf8', function(err, data) {
 
 	console.log(str);
 	console.log(constantPool);
+	console.log(this.errors);
 
 	/*
     var ast = parser.parse(data);

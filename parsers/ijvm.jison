@@ -19,9 +19,8 @@
 "="                     {return 'EQUAL';}
 ","                     {return 'COMMA';}
 ":"                     {return 'COLON';}
-([a-zA-Z]|_|-)\w*       {return 'SYMBOL';}
+[a-zA-Z]\w*             {return 'SYMBOL';}
 <<EOF>>                 {return 'EOF';}
-$                 {return 'EOF';}
 /lex
 
 %left PLUS
@@ -34,7 +33,7 @@ $                 {return 'EOF';}
 %% /* language grammar */
 
 program
-	: empty methods
+	: empty methods EOF
 		{return $2;}
 	;
 
@@ -51,14 +50,20 @@ methods
 	;
 
 method
-	: METHOD SYMBOL empty directives empty insns empty
+	: METHOD SYMBOL empty direntry insnsentry
 		{
 			$$ = new method($2, $4, $6);
 		}
-	| METHOD SYMBOL empty directives empty insns
-		{
-			$$ = new method($2, $4, $5);
-		}
+	;
+
+direntry
+	: ENDLINE direntry
+	| directives
+	;
+
+insnsentry
+	: ENDLINE insnsentry
+	| insns
 	;
 
 directives
@@ -105,7 +110,11 @@ expr
 		}
 	| SYMBOL
 		{
-			$$ = function(env) {
+			$$ = function(env, lbl) {
+				if (!!lbl) {
+					return $1;
+				}
+
 				if (!env.hasOwnProperty($1)) {
 					throw new Error("Unresolved variable " + $1 + " on line " +  yylineno);
 				}
@@ -134,6 +143,21 @@ expr
 		}
 	;
 
+label
+	: SYMBOL COLON
+		{ 
+			$$ = function(insn) {
+				insn.label = $1;
+			}
+		}
+	|
+		{ 
+			$$ = function(insn) {
+				insn.label = '';
+			}
+		}
+	;
+
 insns
 	: insns empty insn
 		{
@@ -149,17 +173,18 @@ insns
 		}
 	;
 
-insn    : SYMBOL exprs ENDLINE
-			{$$ = [$1, $2];}
-		| SYMBOL COLON SYMBOL exprs ENDLINE
-			{$$ = [$1, $2];}
-		| SYMBOL ENDLINE
-			{$$ = [$1, $2];}
-		| SYMBOL COLON SYMBOL ENDLINE
-			{$$ = [$1, $2];}
-		| SYMBOL COLON ENDLINE
-			{$$ = ['LABEL', $1];}
-		;
+insn
+	: SYMBOL exprs ENDLINE
+		{
+			$$ = [$1].concat($2);
+		}
+	| SYMBOL ENDLINE
+		{$$ = [$1].concat($2);}
+	| SYMBOL COLON ENDLINE
+		{$$ = ['LABEL', $1];}
+	| SYMBOL COLON
+		{$$ = ['LABEL', $1];}
+	;
 
 exprs
 	: exprs expr
@@ -187,6 +212,15 @@ var exprFun = (function() {
 	return plusfunc;
 }());
 
+var instruction = (function() {
+	function instruction(symbol, expressions) {
+		this.symbol = symbol;
+		this.expressions = expressions;
+	}
+
+	return instruction;
+}());
+
 var method = (function() {
 	function method(name, directives, insns) {
 		this.name = name;
@@ -197,6 +231,7 @@ var method = (function() {
 		this.nparms  = 1;  // Amount of parameters
 		this.nBytes  = 4;
 		this.byteCode = [];
+		this.errors = [];
 
 		var me = this;
 
@@ -209,6 +244,8 @@ var method = (function() {
 				me.nparms = e[1](me.locals);
 			}
 		});
+
+		console.log(insns);
 
 		insns.forEach(function(e) {
 			if (e.length == 0) {
@@ -246,8 +283,9 @@ var method = (function() {
 						var staticAddr = me.nBytes - 1;
 						me.nBytes += 2;
 						bc.push(function() {
-							console.log("Going from", me.nBytes, "to label", me.labels[e[1]]);
-							var off = me.labels[e[1]] - staticAddr;
+							var lbl = e[1](me.locals, true);
+							console.log("Going from", me.nBytes, "to label", me.labels[lbl]);
+							var off = me.labels[lbl] - staticAddr;
 							var bc = [];
 							bc.push((off & (~255)) >> 8);
 							bc.push(off & 255);

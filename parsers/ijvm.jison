@@ -19,12 +19,14 @@
 "="                     {return 'EQUAL';}
 ","                     {return 'COMMA';}
 ":"                     {return 'COLON';}
-[a-zA-Z]\w*             {return 'SYMBOL';}
+[a-zA-Z]\w*\b           {return 'SYMBOL';}
 <<EOF>>                 {return 'EOF';}
 /lex
 
-%left PLUS
-%left MINUS
+%expect 4
+
+%left MINUS PLUS
+%left NEG
 
 /* operator associations and precedence */
 
@@ -32,169 +34,257 @@
 
 %% /* language grammar */
 
-program
-	: empty methods EOF
-		{return $2;}
+newline+
+	: newline+ ENDLINE
+		{$$ = [];}
+	| ENDLINE
+		{$$ = [];}
 	;
 
-empty
-	: empty ENDLINE
-	| ENDLINE
+program
+	: newline+ methods EOF
+		{return $2;}
+	| methods EOF
+		{return $1;}
 	;
 
 methods
-	: methods method
-		{$$ = $1.concat($2);}
-	| method
-		{$$ = [$1]}
-	;
-
-method
-	: METHOD SYMBOL empty direntry insnsentry
-		{
-			$$ = new method($2, $4, $6);
-		}
-	;
-
-direntry
-	: ENDLINE direntry
-	| directives
-	;
-
-insnsentry
-	: ENDLINE insnsentry
-	| insns
-	;
-
-directives
-	: directives empty directive
+	: methods newline+ method
 		{
 			$$ = $1;
 			$$.push($3);
 		}
-	| directive
-		{
-			$$ = [$1];
-		}
-	| directives directive
+	| methods method
 		{
 			$$ = $1;
 			$$.push($2);
+		}
+	| method
+		{$$ = [$1];}
+	;
+
+method
+	: METHOD SYMBOL newline+ methodbody
+		{
+			//console.log("MDirectives:", $4[0]);
+			$$ = new method($2, $4[0], $4[1], _$);
+		}
+	;
+
+methodbody
+	: directive_begin insns_begin
+		{
+			$$ = [$1, $2];
+			//console.log($1);
+		}
+	;
+
+directive_begin
+	: directive directives newline+
+		{
+			$$ = [$1].concat($2);
+		}
+	| directive directives
+		{
+			$$ = [$1].concat($2);
+		}
+	|
+		{$$ = [];}
+	;
+
+insns_begin
+	: insn insns newline+
+		{
+			$$ = $2;
+			$$.unshift($1);
+		}
+	| insn insns
+		{
+			$$ = $2;
+			$$.unshift($1);
+		}
+	;
+
+directives
+	: directive
+		{
+			$$ = [$1];
+			//console.log("1:", $$)
+		}
+	| directives directive
+		{
+			$$ = $1.concat($2);
+		}
+	| directives newline+ directive
+		{
+			$$ = $1.concat($3);
 		}
 	;
 
 directive
 	: ARG expr ENDLINE
-		{$$ = ['ARGS', $2];}
+		{
+			var loc = @$;
+			$$ = function(method) {
+				var args = $2(method);
+				if (args < 1) {
+					method.errors.push(
+						["A method has atleast one parameter", loc]);
+					method.nargs = 1;
+					return;
+				}
+
+				if (method.nargs !== null) {
+					method.errors.push(
+						["Repeated .args for method", loc]);
+					method.nargs = 1;
+					return;
+				}
+
+				method.nargs = args;
+			};
+		}
 	| LOCAL expr ENDLINE
-		{$$ = ['LOCALS', $2];}
+		{
+			var loc = @$;
+			$$ = function(method) {
+				var locals = $2(method);
+				if (locals < 0) {
+					method.errors.push(
+						["A method cannot have negative local variables", loc]);
+					method.nlocals = 1;
+					return;
+				}
+
+				if (method.nlocals !== null) {
+					method.errors.push(
+						["Repeated .locals for method", loc]);
+					method.nlocals = 1;
+					return;
+				}
+
+				method.nlocals = locals;
+			};
+		}
 	| DEFINE SYMBOL EQUAL expr ENDLINE
 		{
-			$$ = ['DEFINE', function(env) {
-				if (env.hasOwnProperty($2)) {
-					throw new Error("Redefinition of variable " + $2 + " on line " +  yylineno);
+			var loc = @$;
+			var sym = $2;
+			$$ = function(method) {
+				var val = $4(method);
+
+				if (method.locals.hasOwnProperty(sym)) {
+					method.errors.push(["Redefinition of variable " + sym, loc]);
+					return;
 				}
 
-				env[$2] = $4(env);
-				return env;
-			}]
-		}
-	;
-
-expr
-	: INTEGER
-		{
-			$$ = function() {
-				return $1|0;
+				method.locals[sym] = val;
 			};
-		}
-	| SYMBOL
-		{
-			$$ = function(env, lbl) {
-				if (!!lbl) {
-					return $1;
-				}
-
-				if (!env.hasOwnProperty($1)) {
-					throw new Error("Unresolved variable " + $1 + " on line " +  yylineno);
-				}
-				return env[$1]|0;
-			};
-		}
-	| expr PLUS expr
-		{
-			$$ = new exprFun($1, $3,
-				(function (a,b) {return a + b}),
-				_$
-				);
-		}
-	| expr MINUS expr
-		{
-			$$ = new exprFun($1, $3,
-				(function (a,b) {return a - b}),
-				_$
-				);
-		}
-	| LPAREN expr RPAREN
-		{
-			$$ = function(env) {
-				return $2(env);
-			}
-		}
-	;
-
-label
-	: SYMBOL COLON
-		{ 
-			$$ = function(insn) {
-				insn.label = $1;
-			}
-		}
-	|
-		{ 
-			$$ = function(insn) {
-				insn.label = '';
-			}
 		}
 	;
 
 insns
-	: insns empty insn
+	: insn
 		{
-			$$ = $1;
-			$$.push($3);
+			$$ = [$1];
 		}
-	| insn
-		{$$ = [$1];}
 	| insns insn
 		{
 			$$ = $1;
 			$$.push($2);
+		}
+	| insns newline+ insn
+		{
+			$$ = $1;
+			$$.push($3);
 		}
 	;
 
 insn
 	: SYMBOL exprs ENDLINE
 		{
-			$$ = [$1].concat($2);
+			$$ = new instruction($1, $2, @$);
 		}
 	| SYMBOL ENDLINE
-		{$$ = [$1].concat($2);}
-	| SYMBOL COLON ENDLINE
-		{$$ = ['LABEL', $1];}
+		{
+			$$ = new instruction($1, [], @$);
+		}
 	| SYMBOL COLON
-		{$$ = ['LABEL', $1];}
+		{
+			$$ = {
+				generate: function(method) {
+					method.labels[$1] = method.byteCode.length;
+				},
+			};
+		}
 	;
 
 exprs
 	: exprs expr
 		{
-			$1.push(expr)
 			$$ = $1;
+			$$.push($2);
 		}
 	| expr
 		{
 			$$ = [$1];
+		}
+	;
+
+expr
+	: INTEGER
+		{
+			$$ = function(method) {
+				return parseInt($1);
+			};
+		}
+	| SYMBOL
+		{
+			var e = $1;
+			var loc = @$;
+			$$ = function(method, label) {
+				if (!!label) {
+					return e;
+				}
+
+				if (!method.locals.hasOwnProperty(e)) {
+					method.errors.push(["Unresolvable variable " + e, loc]);
+					return 1;
+				}
+
+				return method.locals[$1];
+			};
+		}
+	| expr PLUS expr
+		{
+			var l = $1;
+			var r = $3;
+			var loc = @$;
+			$$ = function(method) {
+				return l(method) + r(method);
+			};
+		}
+	| expr MINUS expr
+		{
+			var l = $1;
+			var r = $3;
+			$$ = function(method) {
+				return l(method) - r(method);
+			};
+		}
+	| MINUS expr %prec NEG
+		{
+			var e = $2;
+			$$ = function(method) {
+				return e(method);
+			};
+		}
+	| LPAREN expr RPAREN
+		{
+			var e = $2;
+			$$ = function(method) {
+				return e(method);
+			};
 		}
 	;
 
@@ -213,141 +303,155 @@ var exprFun = (function() {
 }());
 
 var instruction = (function() {
-	function instruction(symbol, expressions) {
+	function instruction(symbol, expressions, loc) {
 		this.symbol = symbol;
 		this.expressions = expressions;
+		this.loc = loc;
 	}
+
+	instruction.prototype.generate = function(method, specs) {
+		var me = this,
+			bcIdx = method.byteCode.length;
+			eIdx = 0,
+			i  = 0;
+
+		if (!specs.hasOwnProperty(this.symbol)) {
+			method.errors.push(["Unknown instruction " + this.symbol, this.loc]);
+			method.byteCode.push(0xEE);
+			return;
+		}
+
+		var nmbr  = specs[this.symbol][0],
+			exprs = specs[this.symbol][1],
+			exprlimit = Math.min(exprs.length, this.expressions.length),
+			e = this.expressions;
+
+		method.byteCode.push(nmbr);
+
+		if (this.expressions.length < exprs.length) {
+			method.errors.push(["Missing expressions according to spec " + exprs, this.loc]);
+		} else if (this.expressions.length > exprs.length) {
+			method.errors.push(["Too many expressions according to spec " + exprs, this.loc]);
+		}
+
+		for (i = 0; i < exprlimit; i++) {
+			var p = exprs[i];
+			switch(p) {
+			case 'byte':
+				method.byteCode.push(e[i](method));
+				break;
+			case 'label':
+				var staticAddr = bcIdx;
+				var bcIndex = method.byteCode.length;
+				var expIdx = i;
+				method.byteCode.push(0xEE, 0xEE);
+				method.resolvers.push(function(offset, constantpool, methods, labels) {
+					var lbl = e[expIdx](method, true);
+					//console.log("Going from", bcIdx, "to label", labels[lbl]);
+					var off;
+					
+					if (!labels.hasOwnProperty(lbl)) {
+						method.errors.push("Unmatched label '" + lbl + "'", me.loc);
+						off = 0;
+					} else {
+						off = labels[lbl] - staticAddr;
+					}
+
+					method.byteCode[bcIndex]     = (off & (~255)) >> 8;
+					method.byteCode[bcIndex + 1] = off & 255;
+				});
+				break;
+			case 'varnum':
+				method.byteCode.push(e[i](method));
+				break;
+			case 'varnum-wide':
+				var off = e[i](method);
+				if (off > 0xFF) {
+					method.byteCode.push((off & (~255)) >> 8);
+				}
+				method.byteCode.push(off & 255);
+				break;
+			case 'method':
+				var bcIndex = method.byteCode.length;
+				var expIdx = i;
+				method.byteCode.push(0xEE, 0xEE);
+				method.resolvers.push(function(offset, constantpool, methods, labels){
+					var mname = e[expIdx](method, true);
+					var midx = 0;
+					if (!methods.hasOwnProperty(mname)) {
+						method.errors.push(
+							["Invoking non-existant method '" + mname + "'", me.loc]);
+					} else {
+						midx = methods[e[expIdx](method, true)];
+					}
+					method.byteCode[bcIndex]     = (midx & (~255)) >> 8;
+					method.byteCode[bcIndex + 1] = midx & 255;
+				});
+				break;
+			case 'constant':
+				var v = e[i](method);
+				method.byteCode.push(nmbr);
+				var bcIndex = method.byteCode.length;
+
+				method.byteCode.push(0xEE, 0xEE);
+
+				method.resolvers.push(function(offset, constantpool, methods, labels) {
+					var idx = constantpool.indexOf[v];
+					if (idx == -1) {
+						idx = constantpool.length;
+						constantpool.push(v);
+					}
+					method.byteCode[bcIndex]     = (idx & (~255)) >> 8;
+					method.byteCode[bcIndex + 1] = idx & 255;
+				});
+			}
+		}
+	};
 
 	return instruction;
 }());
 
 var method = (function() {
-	function method(name, directives, insns) {
+	function method(name, directives, insns, loc) {
+		this.loc = loc;
 		this.name = name;
 		this.locals = {};
 		this.labels = {};
-		this.insns  = [];
-		this.nlocals = 0;  // Amount of local variables
-		this.nparms  = 1;  // Amount of parameters
+		this.insns  = insns;
+		this.nlocals = null;  // Amount of local variables
+		this.nargs  = null;   // Amount of parameters
 		this.nBytes  = 4;
 		this.byteCode = [];
 		this.errors = [];
+		this.resolvers = [];
 
 		var me = this;
 
-		directives.forEach(function(e, idx) {
-			if (e[0] === 'DEFINE') {
-				me.locals = e[1](me.locals);
-			} else if (e[0] === 'LOCALS') {
-				me.nlocals = e[1](me.locals);
-			} else if (e[0] === 'ARGS') {
-				me.nparms = e[1](me.locals);
-			}
+		directives.forEach(function(e) {
+			e(me);
+			//console.log(e);	
 		});
 
-		console.log(insns);
+		if (this.nlocals === null) {
+			this.nlocals = 0;
+		}
 
-		insns.forEach(function(e) {
-			if (e.length == 0) {
-				return;
-			}
-			var insn = e[0];
-			var f = null;
-			var bc = [];
-
-			// f takes 'm', which is local variables, 'c' which is the
-			// constant pool and 'methods' which are the procedures.
-			f = function(m, c, methods) {
-				if (insn === 'LABEL') {
-					me.labels[e[1]] = me.nBytes;
-					console.log("Label", e[1], "at", me.nBytes);
-					return [];
-				}
-
-				if (!m.hasOwnProperty(insn)) {
-					throw new Error("Unable to find instruction: " + insn);
-				}
-
-				var bc = [];
-				var t = m[insn];
-				me.nBytes += 1;
-				bc.push(t[0]);
-
-				t[1].forEach(function(p) {
-					switch(p) {
-					case 'byte':
-						me.nBytes += 1;
-						bc.push(e[1](me.locals));
-						break;
-					case 'label':
-						var staticAddr = me.nBytes - 1;
-						me.nBytes += 2;
-						bc.push(function() {
-							var lbl = e[1](me.locals, true);
-							console.log("Going from", me.nBytes, "to label", me.labels[lbl]);
-							var off = me.labels[lbl] - staticAddr;
-							var bc = [];
-							bc.push((off & (~255)) >> 8);
-							bc.push(off & 255);
-							return bc;
-						});
-						break;
-					case 'varnum':
-						me.nBytes += 1;
-						bc.push(e[1](me.locals));
-						break;
-					case 'varnum-wide':
-						me.nBytes += 1;
-						var off = e[1](me.locals);
-						//bc.push((off & (~255)) >> 8);
-						bc.push(off & 255);
-						break;
-					case 'method':
-						me.nBytes += 2;
-						var midx = methods[e[1]];
-						bc.push((midx & (~255)) >> 8);
-						bc.push(midx & 255);
-						break;
-					case 'constant':
-						me.nBytes += 2;
-						var v = e[1](me.locals);
-						var idx = c.indexOf[v];
-						if (idx == -1) {
-							idx = c.length
-							c.push(v)
-						}
-						bc.push((idx & (~255)) >> 8);
-						bc.push(idx & 255);
-						break;
-					}
-				});
-
-				return bc;
-			}
-
-			me.insns.push(f);
-		});
+		this.byteCode.push(
+			this.nargs >> 8,
+			this.nargs & 0xFF,
+			this.nlocals >> 8,
+			this.nlocals & 0xFF
+		);
 	}
 
 	method.prototype.generateBytecode = function(m, constantPool, methods) {
 		var me = this;
 		var bc = [];
-		bc.push((this.nparms & (~255)) >> 8);
-		bc.push(this.nparms & 255);
-		bc.push((this.nlocals & (~255)) >> 8);
-		bc.push(this.nlocals & 255);
 
 		this.insns.forEach(function(e) {
-			var ibc = e(m, constantPool, methods);
-			bc = bc.concat(ibc);
-		});
-
-		bc.forEach(function(c) {
-			if (typeof c === 'function') {
-				me.byteCode = me.byteCode.concat(c())
-			} else {
-				me.byteCode.push(c);
-			}
+			//var ibc = e(m, constantPool, methods);
+			e.generate(me, m);
+			//bc = bc.concat(ibc);
 		});
 	};
 

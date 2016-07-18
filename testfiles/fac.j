@@ -1,19 +1,12 @@
 // Factorials.
 // fak(1)=1, fak(n) = n*fak(n-1), n > 1.
 
-        .method fak                     // int fak
-
-        .args   2                       // ( int n ){
-        .define n = 1                   
-		//looo
-
-		//looo
-
-		//looo
-        .locals 1                       // int r;
-        .define r = 2
-        .define OBJREF = 43
-
+.method fak                     // int fak
+.args   2                       // ( int n ){
+.define n = 1                   
+.locals 1                       // int r;
+.define r = 2
+.define OBJREF = 43
         bipush 1                        // if
         iload n
         if_icmpeq then                  //    ( n == 1 )
@@ -39,14 +32,13 @@ end_if:
                                         // }
 
 // Integer multiplication.
-
-        .method imul                    // int imul
-        .args   3                       // ( int x, int y )
-        .define x = 1
-        .define y = 2 
-                                        // {                   
-        .locals 1                       // int p;
-        .define p = 3
+.method imul                    // int imul
+.args   3                       // ( int x, int y )
+.define x = 1
+.define y = 2 
+								// {                   
+.locals 1                       // int p;
+.define p = 3
 
         bipush 0
         istore p                        // p = 0;
@@ -70,17 +62,10 @@ end_while:
                                         //}
 
 
-        .method main                    // int main(){
-        .args   1
-        .define OBJREF = 44
-
+.method main                    // int main(){
+.args   1
+.define OBJREF = 44
         bipush OBJREF
         bipush 2
         invokevirtual fak       
         ireturn                         // return fak(2);
-                                        //}
-										//:w
-
-
-
-

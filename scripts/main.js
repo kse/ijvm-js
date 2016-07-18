@@ -2,8 +2,8 @@
 require.config({
 	paths: {
 		'jQuery': 'jquery-2.1.4.min',
-		//'ace': 'ace/ace',
-		'mal': '../parsers/mal',
+		'mal':    '../parsers/mal',
+		'ijvm':   '../parsers/ijvm',
 	},
 
 	shim: {
@@ -15,6 +15,9 @@ require.config({
 		},
 		'mal': {
 			exports: 'mal'
+		},
+		'ijvm': {
+			exports: 'ijvm'
 		},
 	}
 });
@@ -44,7 +47,6 @@ require(['jQuery', 'machine', 'aceEditor',
 				var re = /^(\d+\s*)+$/g;
 
 				if (!re.test(args)) {
-					console.log("Test failed");
 					alert("Parameters invalid");
 					return;
 				}
@@ -107,10 +109,11 @@ require(['jQuery', 'machine', 'aceEditor',
 			$("#btn-compile").click(function() {
 				MAL = malCompiler(malEditor.getContents());
 				IJVM = new ijvmCompiler(ijvmEditor.getContents());
-				//console.log(IJVM);
+				console.log(IJVM);
 
-				//byteCode = new bytecode(ijvmEditor.getContents());
-				mic1 = new machine(MAL.store, MAL.microInstructions, IJVM.constantPool, IJVM.methods.main, IJVM.byteCode);
+				mic1 = new machine(MAL.store, MAL.microInstructions,
+						IJVM.constantPool,
+						IJVM.methods.main.methodAreaLocation,IJVM.byteCode);
 				//stack = new stack_visualization(mic1.registers.CPP);
 
 				mic1.setRegisterWriteCallback(function(reg, v) {

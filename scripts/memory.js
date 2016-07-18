@@ -31,7 +31,7 @@ define([],
 					me.registerWriteCallback('MDR', me.stackArea[idx - me.methodAreaWords]);
 				}
 				me.registers.MDR = me.stackArea[idx - me.methodAreaWords];
-				//console.log("read on stack index", idx, "(" + (idx - me.methodAreaWords) + ")",  "value", me.registers.MDR);
+				console.log("read on stack index", idx, "(" + (idx - me.methodAreaWords) + ")",  "value", me.registers.MDR);
 			});
 		};
 
@@ -48,7 +48,7 @@ define([],
 				if (typeof me.memoryWriteCallback === 'function') {
 					me.memoryWriteCallback(value, idx);
 				}
-				//console.log("Writing", value, "on stack index", idx, "(" + (idx - me.methodAreaWords) + ")");
+				console.log("Writing", value, "on stack index", idx, "(" + (idx - me.methodAreaWords) + ")");
 				me.stackArea[idx - me.methodAreaWords] = value;
 			});
 		};

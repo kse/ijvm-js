@@ -413,16 +413,16 @@ var instruction = (function() {
 
 var method = (function() {
 	function method(name, directives, insns, loc) {
-		this.loc = loc;
-		this.name = name;
-		this.locals = {};
-		this.labels = {};
-		this.insns  = insns;
-		this.nlocals = null;  // Amount of local variables
-		this.nargs  = null;   // Amount of parameters
-		this.nBytes  = 4;
-		this.byteCode = [];
-		this.errors = [];
+		this.loc       = loc;
+		this.name      = name;
+		this.locals    = {};
+		this.labels    = {};
+		this.insns     = insns;
+		this.nlocals   = null;  // Amount of local variables
+		this.nargs     = null;   // Amount of parameters
+		this.nBytes    = 4;
+		this.byteCode  = [];
+		this.errors    = [];
 		this.resolvers = [];
 
 		var me = this;

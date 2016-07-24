@@ -30,7 +30,8 @@
 
 .editor {
 	width: 100%;
-	height: 800px;
+	/*height: 800px;*/
+	height: 100%;
 }
 
 .stack-element {
@@ -54,4 +55,8 @@
 
 #arg-input {
 	width: 100%;
+}
+
+.editor-main {
+	height: 100%;
 }

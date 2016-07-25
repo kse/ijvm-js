@@ -440,7 +440,7 @@ require(['jQuery', 'machine', 'aceEditor',
 				});
 				/*jslint unparam:false*/
 
-				ijvmEditor.highlight(IJVM.bcToLine[IJVM.methods.main.loc.first_line] - 1);
+				ijvmEditor.highlight(IJVM.methods.main.loc.first_line - 1);
 				mic1.setMainLabelCallback(function(mOp) {
 					if (mOp.label === 'main') {
 						ijvmEditor.highlight(IJVM.bcToLine[mic1.registers.PC] - 1);

@@ -325,17 +325,24 @@ require(['jQuery', 'machine', 'aceEditor',
 
 			//initializeEditors(microCode, ijvmCode);
 
-			$("#btn-step").click(function() {
+			$('#btn-step').click(function() {
 				mic1.step();
 				if (mic1.done) {
-					console.log("Result:", mic1.result);
+					console.log('Result:', mic1.result);
 				}
 			});
 
-			$("#btn-run").click(function() {
+			$('#btn-run').click(function() {
 				mic1.run();
 				if (mic1.done) {
-					console.log("Result:", mic1.result);
+					console.log('Result:', mic1.result);
+				}
+			});
+
+			$('#btn-step-ijvm').click(function() {
+				mic1.step_ijvm();
+				if (mic1.done) {
+					console.log('Result:', mic1.result);
 				}
 			});
 
@@ -397,10 +404,12 @@ require(['jQuery', 'machine', 'aceEditor',
 					$("#s" + reg).html(reg + ":" + v).prev().css('fill', '#efefef');
 					//stack.registerWriteCallback(reg, v);
 					
+					/*
 					if ('PC' === reg) {
 						//console.log("Highlighting line", IJVM.bcToLine[v], "Register:", v);
 						ijvmEditor.highlight(IJVM.bcToLine[v] - 1);
 					}
+					*/
 				});
 
 				/*jslint unparam:true*/
@@ -414,9 +423,9 @@ require(['jQuery', 'machine', 'aceEditor',
 
 				/*jslint unparam:true*/
 				mic1.setInstructionCallback(function(mOp, na) {
-					console.log(mOp);
+					//console.log(mOp);
 					//console.log(mic1.memory.stackArea.slice(0, mic1.registers.PC).join(','));
-					console.log(mic1.memory.stackArea.slice(mic1.constantPool.length).join(','));
+					//console.log(mic1.memory.stackArea.slice(mic1.constantPool.length).join(','));
 					if (malEditor !== null) {
 						if (isInt(mOp.lineNumber)) {
 							malEditor.scrollTo(mOp.lineNumber - 1);
@@ -431,8 +440,12 @@ require(['jQuery', 'machine', 'aceEditor',
 				});
 				/*jslint unparam:false*/
 
-				//mic1.setMainLabelCallback(function() {
-				//});
+				ijvmEditor.highlight(IJVM.bcToLine[IJVM.methods.main.loc.first_line] - 1);
+				mic1.setMainLabelCallback(function(mOp) {
+					if (mOp.label === 'main') {
+						ijvmEditor.highlight(IJVM.bcToLine[mic1.registers.PC] - 1);
+					}
+				});
 
 				mic1.refreshRegisterCallback();
 				mic1.refreshStackCallback();

@@ -131,10 +131,10 @@ define(['memory'],
 
 				this.memory.cycle();
 
+				// NB: This is called before any register changes.
 				if (!!mOp.label) {
-					//console.log("Now at label", mOp.label);
 					if (typeof this.mainCallback === 'function') {
-						this.mainCallback();
+						this.mainCallback(mOp);
 					}
 				}
 
@@ -308,6 +308,16 @@ define(['memory'],
 			machine.prototype.step = function() {
 				if (!this.done) {
 					this.simulateInstruction();
+				}
+			};
+
+			machine.prototype.step_ijvm = function () {
+				if (!this.done) {
+					var mOp;
+					do {
+						mOp = this.microInstructions[this.controlStore[this.instruction]];
+						this.step();
+					} while (!this.done && mOp.label !== 'main');
 				}
 			};
 

@@ -67,7 +67,7 @@ method
 	: METHOD SYMBOL newline+ methodbody
 		{
 			//console.log("MDirectives:", $4[0]);
-			$$ = new method($2, $4[0], $4[1], _$);
+			$$ = new method($2, $4[0], $4[1], @$);
 		}
 	;
 
@@ -406,6 +406,10 @@ var instruction = (function() {
 				});
 			}
 		}
+
+		for (i = 0; i < method.byteCode.length - bcIdx; i++) {
+			method.bcToLine[bcIdx + i] = this.loc.first_line;
+		}
 	};
 
 	return instruction;
@@ -419,11 +423,12 @@ var method = (function() {
 		this.labels    = {};
 		this.insns     = insns;
 		this.nlocals   = null;  // Amount of local variables
-		this.nargs     = null;   // Amount of parameters
+		this.nargs     = 1;   // Amount of parameters, default 1.
 		this.nBytes    = 4;
 		this.byteCode  = [];
 		this.errors    = [];
 		this.resolvers = [];
+		this.bcToLine  = {};
 
 		var me = this;
 
@@ -446,7 +451,11 @@ var method = (function() {
 
 	method.prototype.generateBytecode = function(m, constantPool, methods) {
 		var me = this;
-		var bc = [];
+		//var bc = [];
+
+		for (var i = 0; i < 4; i++) {
+			this.bcToLine[i] = this.loc.first_line;
+		}
 
 		this.insns.forEach(function(e) {
 			//var ibc = e(m, constantPool, methods);

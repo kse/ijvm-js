@@ -53,11 +53,12 @@ require(['jQuery', 'machine', 'aceEditor',
 		'ijvmCompiler',
 		'goldenlayout',
 		'underscore',
-		'ace/ace',
 		'text!../testfiles/fac.j',
 		'text!../resource/mic1.mal'],
-		function($, machine, aceEditor, malCompiler, ijvmCompiler, GoldenLayout, _, ace, ijvmCode, microCode) {
-			var ijvmEditor = null, mic1 = null,
+		function($, machine, aceEditor, malCompiler, ijvmCompiler, GoldenLayout, _, ijvmCode, microCode) {
+			var ijvmEditor = null,
+				malEditor = null,
+				mic1 = null,
 				MAL, IJVM = null,
 				fileElement = null;
 			
@@ -75,20 +76,11 @@ require(['jQuery', 'machine', 'aceEditor',
 
 			function initializeDockerLayout() {
 				// Document = ace.require('ace/document').Document,
-				var EditSession = ace.require('ace/edit_session').EditSession,
-				Editor = ace.require('ace/editor').Editor,
-				VirtualRenderer = ace.require('ace/virtual_renderer').VirtualRenderer,
-				PlainTextMode = ace.require('ace/mode/text').Mode,
-				UndoManager = ace.require('ace/undomanager').UndoManager;
-
-				var aceMALDocument = new EditSession(microCode, new PlainTextMode());
-				aceMALDocument.setUndoManager(new UndoManager());
 
 				/* Initialize GoldenLayout */
 				var goldenLayout = new GoldenLayout({
 					settings: {
 						showPopoutIcon: false,
-						//showCloseIcon: false,
 						selectionEnabled: true,
 					},
 					content: [{
@@ -137,13 +129,17 @@ require(['jQuery', 'machine', 'aceEditor',
 				goldenLayout.registerComponent('mal-editor', function(container, componentState) {
 					var div = container.getElement();
 
-					var virtualRenderer = new VirtualRenderer(div.get(0), 'ace/theme/monokai');
-					var editor = new Editor(virtualRenderer);
-					editor.setSession(componentState.doc);
-					editor.$blockScrolling = Infinity;
+					//var virtualRenderer = new VirtualRenderer(div.get(0), 'ace/theme/monokai');
+					//var editor = new Editor(virtualRenderer);
+					//editor.setSession(componentState.doc);
+					//editor.$blockScrolling = Infinity;
+
+					var editor = new aceEditor(div.get(0));
+					editor.setContents(componentState.text);
+					malEditor = editor;
 
 					container.on('resize', function() {
-						editor.resize();
+						editor.editor.resize();
 					});
 				});
 
@@ -155,6 +151,8 @@ require(['jQuery', 'machine', 'aceEditor',
 
 					var editor = new aceEditor(el.get(0));
 					editor.setContents(localStorage.getItem(componentState.filename));
+
+					$('#btn-compile').prop('disabled', false);
 
 					// There can only ever exist one.
 					ijvmEditor = editor;
@@ -207,6 +205,7 @@ require(['jQuery', 'machine', 'aceEditor',
 						}
 					});
 
+					// Handle the deletion of files.
 					container.getElement().find('.removefile').click(function() {
 						var warnStr = "Press 'OK' if you want to delete this file.";
 
@@ -220,6 +219,15 @@ require(['jQuery', 'machine', 'aceEditor',
 
 							updateSavedFiles();
 						}
+					});
+
+					container.on('destroy', function() {
+						$('#control-container .toggleable').prop('disabled', true);
+						$('#btn-compile').removeClass('btn-success').addClass('btn-danger');
+						ijvmEditor = null;
+						mic1 = null;
+						MAL = null;
+						IJVM = null;
 					});
 				});
 
@@ -307,7 +315,6 @@ require(['jQuery', 'machine', 'aceEditor',
 					componentName: 'mal-editor',
 					componentState: {
 						text: microCode,
-						doc: aceMALDocument,
 					}
 				};
 
@@ -333,6 +340,7 @@ require(['jQuery', 'machine', 'aceEditor',
 			});
 
 			function startMic1() {
+				/*
 				var args = $('#arg-input').val();
 				var re = /^(\d+\s*)+$/g;
 
@@ -344,7 +352,13 @@ require(['jQuery', 'machine', 'aceEditor',
 				var s = args.trim().split(/\s+/).map(function(item) {
 					return parseInt(item, 10);
 				});
-				mic1.start(s);
+				*/
+
+				console.log(mic1);
+				mic1.start([]);
+
+				$('#control-container .toggleable').prop('disabled', false);
+				$('#btn-compile').removeClass('btn-danger').addClass('btn-success');
 			}
 
 			$("#btn-reset").click(function() {
@@ -363,36 +377,57 @@ require(['jQuery', 'machine', 'aceEditor',
 				IJVM = new ijvmCompiler(ijvmEditor.getContents());
 				console.log(IJVM);
 
-				mic1 = new machine(MAL.store, MAL.microInstructions,
+				var nargs =
+					IJVM.methods.main.nargs === null ? 0 : IJVM.methods.main.nargs;
+
+				mic1 = new machine(
+						MAL.store,
+						MAL.microInstructions,
 						IJVM.constantPool,
-						IJVM.methods.main.methodAreaLocation,IJVM.byteCode);
+						IJVM.methods.main.methodAreaLocation,
+						IJVM.byteCode,
+						nargs
+					);
+
 				//stack = new stack_visualization(mic1.registers.CPP);
 
 				mic1.setRegisterWriteCallback(function(reg, v) {
-					//console.log("Writing", v, "in", reg);
+					console.log("Writing", v, "in", reg);
 					$('svg rect').css('fill', 'none');
 					$("#s" + reg).html(reg + ":" + v).prev().css('fill', '#efefef');
 					//stack.registerWriteCallback(reg, v);
+					
+					if ('PC' === reg) {
+						//console.log("Highlighting line", IJVM.bcToLine[v], "Register:", v);
+						ijvmEditor.highlight(IJVM.bcToLine[v] - 1);
+					}
 				});
 
 				/*jslint unparam:true*/
+				/* TODO: Implement
 				mic1.setMemoryWriteCallback(function(val, idx) {
 					$("#stack").html(mic1.memory.stackArea.join(','));
 					//stack.memoryWriteCallback(val, idx);
 				});
+				*/
 				/*jslint unparam:false*/
 
 				/*jslint unparam:true*/
 				mic1.setInstructionCallback(function(mOp, na) {
-					//if (isInt(mOp.lineNumber)) {
-					//	malEditor.scrollTo(mOp.lineNumber - 1);
-					//	malEditor.highlight(mOp.lineNumber - 1);
-					//} else {
-					//	console.log("Missing linenumber:", mOp);
-					//}
+					console.log(mOp);
+					//console.log(mic1.memory.stackArea.slice(0, mic1.registers.PC).join(','));
+					console.log(mic1.memory.stackArea.slice(mic1.constantPool.length).join(','));
+					if (malEditor !== null) {
+						if (isInt(mOp.lineNumber)) {
+							malEditor.scrollTo(mOp.lineNumber - 1);
+							malEditor.highlight(mOp.lineNumber - 1);
+						} else {
+							console.log("Missing linenumber:", mOp);
+						}
+					}
 
-					var naStr = "0x" + (na + 0x1000).toString(16).substr(1).toUpperCase();
-					$('#sNA').html(naStr);
+					//var naStr = "0x" + (na + 0x1000).toString(16).substr(1).toUpperCase();
+					//$('#sNA').html(naStr);
 				});
 				/*jslint unparam:false*/
 

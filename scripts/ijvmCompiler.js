@@ -6,9 +6,11 @@ define(['ijvm'], function(ijvm) {
 				var ast = ijvm.parse(data);
 				var constantPool = [];
 				var methods      = {},
-					methodoffsets = {};
+					methodoffsets = {},
+					me = this;
 				var i, sum = 0;
 				this.errors = [];
+				this.bcToLine = {};
 
 				var spec = {
 					'bipush':        [0x10, ['byte']],
@@ -35,6 +37,7 @@ define(['ijvm'], function(ijvm) {
 				};
 
 				ast.forEach(function(e) {
+					var key = 0;
 					if (methodoffsets.hasOwnProperty(e.name)) {
 						this.errors.push(["Duplicate method name " + e.name, e.loc]);
 					} else {
@@ -45,6 +48,15 @@ define(['ijvm'], function(ijvm) {
 
 					methods[e.name] = e;
 					e.generateBytecode(spec, constantPool, methodoffsets);
+
+					// Translate instruction numbers to lines in the IJVM code.
+					for (key in e.bcToLine) {
+						if (e.bcToLine.hasOwnProperty(key)) {
+							//console.log(sum, key, e.bcToLine[key]);
+							me.bcToLine[parseInt(sum, 10) + parseInt(key, 10)]
+								= e.bcToLine[key];
+						}
+					}
 					sum += e.byteCode.length;
 				});
 
@@ -82,6 +94,7 @@ define(['ijvm'], function(ijvm) {
 						str += ' ';
 					}
 				}
+				console.log(str);
 
 				this.constantPool = constantPool;
 				this.byteCode = bc;

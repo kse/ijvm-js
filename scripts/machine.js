@@ -7,10 +7,11 @@
 define(['memory'],
 	function(memory) {
 		return (function() {
-			function machine(store, microInstructions, constantPool, mainIndex, byteCode) {
+			function machine(store, microInstructions, constantPool, mainIndex, byteCode, nargs) {
 				this.controlStore = store.control;
 				this.microInstructions = microInstructions;
 				this.registerWriteCallback = null;
+				this.nargs = nargs;
 
 				this.bytecode = byteCode;
 				this.mainIndex = mainIndex;
@@ -48,11 +49,15 @@ define(['memory'],
 				var stackarea = [].concat(this.constantPool);
 				this.memory = new memory(this.bytecode, stackarea, this.registers);
 
+				// CPP (Constant Pool Pointer) should point to the constant pool,
+				// so a read directly to CPP will read the first entry in the constant pool.
 				this.registers.CPP = this.maWords;
-				this.registers.H = this.mainIndex; // Required by starting point.
-				this.registers.LV = this.maWords;
-				this.registers.SP = this.maWords + this.constantPool.length;
-				this.registers.PC = 0;
+				this.registers.H   = this.mainIndex; // Required by starting point.
+				this.registers.LV  = 0;
+
+				// Point to the last entry in the constant pool.
+				this.registers.SP  = this.maWords + this.constantPool.length - 1;
+				this.registers.PC  = 0;
 			};
 
 			machine.prototype.start = function(args) {
@@ -61,12 +66,21 @@ define(['memory'],
 					throw new Error("Machine already started");
 				}
 
+				// We don't expect the user to input OBJREF, yet.
+				if (args.length !== this.nargs - 1) {
+					throw new Error("Invalid # of arguments, expected " + (this.nargs - 1) + " got " + args.length + ".");
+				}
+
 				this.started = true;
 
-				this.memory.stackArea.push(88); // Push OBJREF
+				// Add OBJREF
+				args.unshift(88);
+
 				args.forEach(function(item) {
 					me.memory.stackArea.push(item); // Push function arguments
 				});
+
+				console.log(me.memory.stackArea);
 
 				this.registers.SP += args.length;
 			};
@@ -119,7 +133,6 @@ define(['memory'],
 
 				if (!!mOp.label) {
 					//console.log("Now at label", mOp.label);
-
 					if (typeof this.mainCallback === 'function') {
 						this.mainCallback();
 					}

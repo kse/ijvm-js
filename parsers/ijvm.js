@@ -36,7 +36,7 @@ break;
 case 8:
 
 			//console.log("MDirectives:", $$[$0][0]);
-			this.$ = new method($$[$0-2], $$[$0][0], $$[$0][1], _$);
+			this.$ = new method($$[$0-2], $$[$0][0], $$[$0][1], this._$);
 		
 break;
 case 9:
@@ -88,6 +88,7 @@ case 18:
 			var loc = this._$;
 			this.$ = function(method) {
 				var args = $$[$0-1](method);
+				console.log("Read it as taking", args, "arguments");
 				if (args < 1) {
 					method.errors.push(
 						["A method has atleast one parameter", loc]);
@@ -495,6 +496,10 @@ var instruction = (function() {
 				});
 			}
 		}
+
+		for (i = 0; i < method.byteCode.length - bcIdx; i++) {
+			method.bcToLine[bcIdx + i] = this.loc.first_line;
+		}
 	};
 
 	return instruction;
@@ -502,17 +507,18 @@ var instruction = (function() {
 
 var method = (function() {
 	function method(name, directives, insns, loc) {
-		this.loc = loc;
-		this.name = name;
-		this.locals = {};
-		this.labels = {};
-		this.insns  = insns;
-		this.nlocals = null;  // Amount of local variables
-		this.nargs  = null;   // Amount of parameters
-		this.nBytes  = 4;
-		this.byteCode = [];
-		this.errors = [];
+		this.loc       = loc;
+		this.name      = name;
+		this.locals    = {};
+		this.labels    = {};
+		this.insns     = insns;
+		this.nlocals   = null;  // Amount of local variables
+		this.nargs     = 1;   // Amount of parameters, default 1.
+		this.nBytes    = 4;
+		this.byteCode  = [];
+		this.errors    = [];
 		this.resolvers = [];
+		this.bcToLine  = {};
 
 		var me = this;
 
@@ -535,7 +541,11 @@ var method = (function() {
 
 	method.prototype.generateBytecode = function(m, constantPool, methods) {
 		var me = this;
-		var bc = [];
+		//var bc = [];
+
+		for (var i = 0; i < 4; i++) {
+			this.bcToLine[i] = this.loc.first_line;
+		}
 
 		this.insns.forEach(function(e) {
 			//var ibc = e(m, constantPool, methods);

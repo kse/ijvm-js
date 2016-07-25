@@ -58,5 +58,14 @@
 }
 
 .editor-main {
+	display: table-cell;
+}
+
+.editor-content {
+	display: table-row;
 	height: 100%;
+}
+
+.editor-container {
+	display: table;
 }

@@ -34,6 +34,7 @@ define(['ace/ace'],
 				this.session.addGutterDecoration(lineNo, "editor-highlight");
 				this.highlighted = lineNo;
 				this.editor.clearSelection();
+				this.editor.focus();
 			};
 
 			aceEditor.prototype.clearHighlight = function() {

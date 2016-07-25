@@ -146,7 +146,7 @@ require(['jQuery', 'machine', 'aceEditor',
 				goldenLayout.registerComponent('ijvm-editor', function(container, componentState) {
 					var template = (_.template($('#editor-tab-template').html()))();
 
-					container.getElement().html(template);
+					container.getElement().html(template).addClass('editor-container');
 					var el = container.getElement().find('.editor-main');
 
 					var editor = new aceEditor(el.get(0));
@@ -347,20 +347,6 @@ require(['jQuery', 'machine', 'aceEditor',
 			});
 
 			function startMic1() {
-				/*
-				var args = $('#arg-input').val();
-				var re = /^(\d+\s*)+$/g;
-
-				if (!re.test(args)) {
-					alert("Parameters invalid");
-					return;
-				}
-
-				var s = args.trim().split(/\s+/).map(function(item) {
-					return parseInt(item, 10);
-				});
-				*/
-
 				console.log(mic1);
 				mic1.start([]);
 
@@ -403,17 +389,10 @@ require(['jQuery', 'machine', 'aceEditor',
 					$('svg rect').css('fill', 'none');
 					$("#s" + reg).html(reg + ":" + v).prev().css('fill', '#efefef');
 					//stack.registerWriteCallback(reg, v);
-					
-					/*
-					if ('PC' === reg) {
-						//console.log("Highlighting line", IJVM.bcToLine[v], "Register:", v);
-						ijvmEditor.highlight(IJVM.bcToLine[v] - 1);
-					}
-					*/
 				});
 
 				/*jslint unparam:true*/
-				/* TODO: Implement
+				/*
 				mic1.setMemoryWriteCallback(function(val, idx) {
 					$("#stack").html(mic1.memory.stackArea.join(','));
 					//stack.memoryWriteCallback(val, idx);

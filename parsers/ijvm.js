@@ -1,165 +1,239 @@
 
 
 define(function(require){
-var o=function(k,v,o,l){for(o=o||{},l=k.length;l--;o[k[l]]=v);return o},$V0=[5,9],$V1=[5,9,10,25,26,27,28,29,30,31,32,33,35,36,37,38,39,40,41,42,43,44,45],$V2=[2,8],$V3=[1,12],$V4=[1,13],$V5=[1,14],$V6=[2,18],$V7=[1,37],$V8=[1,17],$V9=[1,18],$Va=[1,19],$Vb=[1,20],$Vc=[1,21],$Vd=[1,22],$Ve=[1,23],$Vf=[1,24],$Vg=[1,25],$Vh=[1,26],$Vi=[1,27],$Vj=[1,28],$Vk=[1,29],$Vl=[1,30],$Vm=[1,31],$Vn=[1,32],$Vo=[1,33],$Vp=[1,34],$Vq=[1,35],$Vr=[1,36],$Vs=[1,41],$Vt=[1,40],$Vu=[1,42],$Vv=[1,58],$Vw=[1,59],$Vx=[7,20,21,23,34];
+var o=function(k,v,o,l){for(o=o||{},l=k.length;l--;o[k[l]]=v);return o},$V0=[1,4],$V1=[1,6],$V2=[1,8],$V3=[4,7,9,10,18,20,21],$V4=[4,7,9],$V5=[1,19],$V6=[1,20],$V7=[1,21],$V8=[1,24],$V9=[1,29],$Va=[1,28],$Vb=[1,30],$Vc=[1,31],$Vd=[4,10,18,20,21],$Ve=[1,43],$Vf=[1,44],$Vg=[4,10,25,26,27,28,29],$Vh=[7,9],$Vi=[4,7,9,10],$Vj=[4,10,25,28];
 var parser = {trace: function trace() { },
 yy: {},
-symbols_: {"error":2,"program":3,"methods":4,"EOF":5,"empty":6,"ENDLINE":7,"method":8,"METHOD":9,"SYMBOL":10,"directives":11,"insns":12,"directive":13,"ARG":14,"expr":15,"LOCAL":16,"DEFINE":17,"EQUAL":18,"INTEGER":19,"PLUS":20,"MINUS":21,"LPAREN":22,"RPAREN":23,"insn":24,"BIPUSH":25,"DUP":26,"GOTO":27,"IADD":28,"IAND":29,"IFEQ":30,"IFLT":31,"IFICMPEQ":32,"IINC":33,"COMMA":34,"ILOAD":35,"INVOKEVIRTUAL":36,"IOR":37,"IRETURN":38,"ISTORE":39,"ISUB":40,"LDCW":41,"NOP":42,"POP":43,"SWAP":44,"WIDE":45,"COLON":46,"$accept":0,"$end":1},
-terminals_: {2:"error",5:"EOF",7:"ENDLINE",9:"METHOD",10:"SYMBOL",14:"ARG",16:"LOCAL",17:"DEFINE",18:"EQUAL",19:"INTEGER",20:"PLUS",21:"MINUS",22:"LPAREN",23:"RPAREN",25:"BIPUSH",26:"DUP",27:"GOTO",28:"IADD",29:"IAND",30:"IFEQ",31:"IFLT",32:"IFICMPEQ",33:"IINC",34:"COMMA",35:"ILOAD",36:"INVOKEVIRTUAL",37:"IOR",38:"IRETURN",39:"ISTORE",40:"ISUB",41:"LDCW",42:"NOP",43:"POP",44:"SWAP",45:"WIDE",46:"COLON"},
-productions_: [0,[3,2],[6,1],[4,2],[4,1],[4,0],[8,5],[11,3],[11,0],[13,2],[13,2],[13,4],[15,1],[15,1],[15,3],[15,3],[15,3],[12,3],[12,0],[24,2],[24,1],[24,2],[24,1],[24,1],[24,2],[24,2],[24,2],[24,4],[24,2],[24,2],[24,1],[24,1],[24,2],[24,1],[24,2],[24,1],[24,1],[24,1],[24,1],[24,2]],
+symbols_: {"error":2,"newline":3,"ENDLINE":4,"program":5,"methods":6,"EOF":7,"method":8,"METHOD":9,"SYMBOL":10,"methodbody":11,"directive_begin":12,"insns_begin":13,"directive":14,"directives":15,"insn":16,"insns":17,"ARG":18,"expr":19,"LOCAL":20,"DEFINE":21,"EQUAL":22,"exprs":23,"COLON":24,"INTEGER":25,"PLUS":26,"MINUS":27,"LPAREN":28,"RPAREN":29,"$accept":0,"$end":1},
+terminals_: {2:"error",4:"ENDLINE",7:"EOF",9:"METHOD",10:"SYMBOL",18:"ARG",20:"LOCAL",21:"DEFINE",22:"EQUAL",24:"COLON",25:"INTEGER",26:"PLUS",27:"MINUS",28:"LPAREN",29:"RPAREN"},
+productions_: [0,[3,2],[3,1],[5,3],[5,2],[6,3],[6,2],[6,1],[8,4],[11,2],[12,3],[12,2],[12,0],[13,3],[13,2],[15,1],[15,2],[15,3],[14,3],[14,3],[14,5],[17,1],[17,2],[17,3],[16,3],[16,2],[16,2],[23,2],[23,1],[19,1],[19,1],[19,3],[19,3],[19,2],[19,3]],
 performAction: function anonymous(yytext, yyleng, yylineno, yy, yystate /* action[1] */, $$ /* vstack */, _$ /* lstack */) {
 /* this == yyval */
 
 var $0 = $$.length - 1;
 switch (yystate) {
-case 1:
+case 1: case 2: case 12:
+this.$ = [];
+break;
+case 3: case 4:
 return $$[$0-1];
 break;
-case 3:
-this.$ = $$[$0-1].concat($$[$0]);
-break;
-case 4: case 5:
-this.$ = []
-break;
-case 6:
+case 5: case 23:
 
-			this.$ = new method($$[$0-3], $$[$0-1], $$[$0]);
+			this.$ = $$[$0-2];
+			this.$.push($$[$0]);
+		
+break;
+case 6: case 22: case 27:
+
+			this.$ = $$[$0-1];
+			this.$.push($$[$0]);
 		
 break;
 case 7:
- this.$ = [$$[$0-2]].concat($$[$0]); 
+this.$ = [$$[$0]];
 break;
-case 8: case 18:
-this.$ = [];
+case 8:
+
+			//console.log("MDirectives:", $$[$0][0]);
+			this.$ = new method($$[$0-2], $$[$0][0], $$[$0][1], this._$);
+		
 break;
 case 9:
-this.$ = ['ARGS', $$[$0]];
+
+			this.$ = [$$[$0-1], $$[$0]];
+			//console.log($$[$0-1]);
+		
 break;
 case 10:
-this.$ = ['LOCALS', $$[$0]];
+
+			this.$ = [$$[$0-2]].concat($$[$0-1]);
+		
 break;
 case 11:
 
-				this.$ = function(env) {
-					if (env.hasOwnProperty($$[$0-2])) {
-						throw new Error("Redefinition of variable " + $$[$0-2] + " on line " +  yylineno);
-					}
-
-					env[$$[$0-2]] = $$[$0](env);
-					return env;
-				}
-			
-break;
-case 12:
-
-			this.$ = function() {
-				return $$[$0]|0;
-			};
+			this.$ = [$$[$0-1]].concat($$[$0]);
 		
 break;
 case 13:
 
-			this.$ = function(env) {
-				if (!env.hasOwnProperty($$[$0])) {
-					throw new Error("Unresolved variable " + $$[$0] + " on line " +  yylineno);
-				}
-				return env[$$[$0]]|0;
-			};
+			this.$ = $$[$0-1];
+			this.$.unshift($$[$0-2]);
 		
 break;
 case 14:
 
-			this.$ = new exprFun($$[$0-2], $$[$0],
-				(function (a,b) {return a + b}),
-				_$
-				);
+			this.$ = $$[$0];
+			this.$.unshift($$[$0-1]);
 		
 break;
 case 15:
 
-			this.$ = new exprFun($$[$0-2], $$[$0],
-				(function (a,b) {return a - b}),
-				_$
-				);
+			this.$ = [$$[$0]];
+			//console.log("1:", this.$)
 		
 break;
 case 16:
 
-			this.$ = function(env) {
-				return $$[$0-1](env);
-			}
+			this.$ = $$[$0-1].concat($$[$0]);
 		
 break;
 case 17:
-this.$ = [$$[$0-2]].concat($$[$0]);
+
+			this.$ = $$[$0-2].concat($$[$0]);
+		
+break;
+case 18:
+
+			var loc = this._$;
+			this.$ = function(method) {
+				var args = $$[$0-1](method);
+				console.log("Read it as taking", args, "arguments");
+				if (args < 1) {
+					method.errors.push(
+						["A method has atleast one parameter", loc]);
+					method.nargs = 1;
+					return;
+				}
+
+				if (method.nargs !== null) {
+					method.errors.push(
+						["Repeated .args for method", loc]);
+					method.nargs = 1;
+					return;
+				}
+
+				method.nargs = args;
+			};
+		
 break;
 case 19:
-this.$ = ['bipush', $$[$0]];
+
+			var loc = this._$;
+			this.$ = function(method) {
+				var locals = $$[$0-1](method);
+				if (locals < 0) {
+					method.errors.push(
+						["A method cannot have negative local variables", loc]);
+					method.nlocals = 1;
+					return;
+				}
+
+				if (method.nlocals !== null) {
+					method.errors.push(
+						["Repeated .locals for method", loc]);
+					method.nlocals = 1;
+					return;
+				}
+
+				method.nlocals = locals;
+			};
+		
 break;
 case 20:
-this.$ = ['dup'];
+
+			var loc = this._$;
+			var sym = $$[$0-3];
+			this.$ = function(method) {
+				var val = $$[$0-1](method);
+
+				if (method.locals.hasOwnProperty(sym)) {
+					method.errors.push(["Redefinition of variable " + sym, loc]);
+					return;
+				}
+
+				method.locals[sym] = val;
+			};
+		
 break;
-case 21:
-this.$ = ['goto', $$[$0]];
-break;
-case 22:
-this.$ = ['iadd'];
-break;
-case 23:
-this.$ = ['iand'];
+case 21: case 28:
+
+			this.$ = [$$[$0]];
+		
 break;
 case 24:
-this.$ = ['ifeq', $$[$0]];
+
+			this.$ = new instruction($$[$0-2], $$[$0-1], this._$);
+		
 break;
 case 25:
-this.$ = ['iflt', $$[$0]];
+
+			this.$ = new instruction($$[$0-1], [], this._$);
+		
 break;
 case 26:
-this.$ = ['if_icmpeq', $$[$0]];
-break;
-case 27:
-this.$ = ['iinc', $$[$0-2], $$[$0-1]];
-break;
-case 28:
-this.$ = ['iload', $$[$0]];
+
+			this.$ = {
+				generate: function(method) {
+					method.labels[$$[$0-1]] = method.byteCode.length;
+				},
+			};
+		
 break;
 case 29:
-this.$ = ['invokevirtual', $$[$0]];
+
+			this.$ = function(method) {
+				return parseInt($$[$0]);
+			};
+		
 break;
 case 30:
-this.$ = ['ior'];
+
+			var e = $$[$0];
+			var loc = this._$;
+			this.$ = function(method, label) {
+				if (!!label) {
+					return e;
+				}
+
+				if (!method.locals.hasOwnProperty(e)) {
+					method.errors.push(["Unresolvable variable " + e, loc]);
+					return 1;
+				}
+
+				return method.locals[$$[$0]];
+			};
+		
 break;
 case 31:
-this.$ = ['ireturn'];
+
+			var l = $$[$0-2];
+			var r = $$[$0];
+			var loc = this._$;
+			this.$ = function(method) {
+				return l(method) + r(method);
+			};
+		
 break;
 case 32:
-this.$ = ['istore', $$[$0]];
+
+			var l = $$[$0-2];
+			var r = $$[$0];
+			this.$ = function(method) {
+				return l(method) - r(method);
+			};
+		
 break;
 case 33:
-this.$ = ['isub'];
+
+			var e = $$[$0];
+			this.$ = function(method) {
+				return e(method);
+			};
+		
 break;
 case 34:
-this.$ = ['ldc_w', $$[$0]];
-break;
-case 35:
-this.$ = ['nop'];
-break;
-case 36:
-this.$ = ['pop'];
-break;
-case 37:
-this.$ = ['swap'];
-break;
-case 38:
-this.$ = ['wide'];
-break;
-case 39:
-this.$ = ['LABEL', $$[$0-1]];
+
+			var e = $$[$0-1];
+			this.$ = function(method) {
+				return e(method);
+			};
+		
 break;
 }
 },
-table: [o($V0,[2,5],{3:1,4:2,6:3,7:[1,4]}),{1:[3]},{5:[1,5],8:6,9:[1,7]},o($V0,[2,4]),o($V0,[2,2]),{1:[2,1]},o($V0,[2,3]),{10:[1,8]},{7:[1,9]},o($V1,$V2,{11:10,13:11,14:$V3,16:$V4,17:$V5}),o($V0,$V6,{12:15,24:16,10:$V7,25:$V8,26:$V9,27:$Va,28:$Vb,29:$Vc,30:$Vd,31:$Ve,32:$Vf,33:$Vg,35:$Vh,36:$Vi,37:$Vj,38:$Vk,39:$Vl,40:$Vm,41:$Vn,42:$Vo,43:$Vp,44:$Vq,45:$Vr}),{7:[1,38]},{10:$Vs,15:39,19:$Vt,22:$Vu},{10:$Vs,15:43,19:$Vt,22:$Vu},{10:[1,44]},o($V0,[2,6]),{7:[1,45]},{10:$Vs,15:46,19:$Vt,22:$Vu},{7:[2,20]},{10:[1,47]},{7:[2,22]},{7:[2,23]},{10:[1,48]},{10:[1,49]},{10:[1,50]},{10:$Vs,15:51,19:$Vt,22:$Vu},{10:$Vs,15:52,19:$Vt,22:$Vu},{10:[1,53]},{7:[2,30]},{7:[2,31]},{10:$Vs,15:54,19:$Vt,22:$Vu},{7:[2,33]},{10:$Vs,15:55,19:$Vt,22:$Vu},{7:[2,35]},{7:[2,36]},{7:[2,37]},{7:[2,38]},{46:[1,56]},o($V1,$V2,{13:11,11:57,14:$V3,16:$V4,17:$V5}),{7:[2,9],20:$Vv,21:$Vw},o($Vx,[2,12]),o($Vx,[2,13]),{10:$Vs,15:60,19:$Vt,22:$Vu},{7:[2,10],20:$Vv,21:$Vw},{18:[1,61]},o($V0,$V6,{24:16,12:62,10:$V7,25:$V8,26:$V9,27:$Va,28:$Vb,29:$Vc,30:$Vd,31:$Ve,32:$Vf,33:$Vg,35:$Vh,36:$Vi,37:$Vj,38:$Vk,39:$Vl,40:$Vm,41:$Vn,42:$Vo,43:$Vp,44:$Vq,45:$Vr}),{7:[2,19],20:$Vv,21:$Vw},{7:[2,21]},{7:[2,24]},{7:[2,25]},{7:[2,26]},{20:$Vv,21:$Vw,34:[1,63]},{7:[2,28],20:$Vv,21:$Vw},{7:[2,29]},{7:[2,32],20:$Vv,21:$Vw},{7:[2,34],20:$Vv,21:$Vw},{7:[2,39]},o($V1,[2,7]),{10:$Vs,15:64,19:$Vt,22:$Vu},{10:$Vs,15:65,19:$Vt,22:$Vu},{20:$Vv,21:$Vw,23:[1,66]},{10:$Vs,15:67,19:$Vt,22:$Vu},o($V0,[2,17]),{10:$Vs,15:68,19:$Vt,22:$Vu},o([7,20,23,34],[2,14],{21:$Vw}),o($Vx,[2,15]),o($Vx,[2,16]),{7:[2,11],20:$Vv,21:$Vw},{7:[2,27],20:$Vv,21:$Vw}],
-defaultActions: {5:[2,1],18:[2,20],20:[2,22],21:[2,23],28:[2,30],29:[2,31],31:[2,33],33:[2,35],34:[2,36],35:[2,37],36:[2,38],47:[2,21],48:[2,24],49:[2,25],50:[2,26],53:[2,29],56:[2,39]},
+table: [{3:2,4:$V0,5:1,6:3,8:5,9:$V1},{1:[3]},{4:$V2,6:7,8:5,9:$V1},{3:10,4:$V0,7:[1,9],8:11,9:$V1},o($V3,[2,2]),o($V4,[2,7]),{10:[1,12]},{3:10,4:$V0,7:[1,13],8:11,9:$V1},o($V3,[2,1]),{1:[2,4]},{4:$V2,8:14,9:$V1},o($V4,[2,6]),{3:15,4:$V0},{1:[2,3]},o($V4,[2,5]),{4:$V2,10:[2,12],11:16,12:17,14:18,18:$V5,20:$V6,21:$V7},o($V4,[2,8]),{10:$V8,13:22,16:23},{14:26,15:25,18:$V5,20:$V6,21:$V7},{10:$V9,19:27,25:$Va,27:$Vb,28:$Vc},{10:$V9,19:32,25:$Va,27:$Vb,28:$Vc},{10:[1,33]},o($V4,[2,9]),{10:$V8,16:35,17:34},{4:[1,37],10:$V9,19:39,23:36,24:[1,38],25:$Va,27:$Vb,28:$Vc},{3:40,4:$V0,10:[2,11],14:41,18:$V5,20:$V6,21:$V7},o($Vd,[2,15]),{4:[1,42],26:$Ve,27:$Vf},o($Vg,[2,29]),o($Vg,[2,30]),{10:$V9,19:45,25:$Va,27:$Vb,28:$Vc},{10:$V9,19:46,25:$Va,27:$Vb,28:$Vc},{4:[1,47],26:$Ve,27:$Vf},{22:[1,48]},o($Vh,[2,14],{3:49,16:50,4:$V0,10:$V8}),o($Vi,[2,21]),{4:[1,51],10:$V9,19:52,25:$Va,27:$Vb,28:$Vc},o($Vi,[2,25]),o($Vi,[2,26]),o($Vj,[2,28],{26:$Ve,27:$Vf}),{4:$V2,10:[2,10],14:53,18:$V5,20:$V6,21:$V7},o($Vd,[2,16]),o($Vd,[2,18]),{10:$V9,19:54,25:$Va,27:$Vb,28:$Vc},{10:$V9,19:55,25:$Va,27:$Vb,28:$Vc},o($Vg,[2,33]),{26:$Ve,27:$Vf,29:[1,56]},o($Vd,[2,19]),{10:$V9,19:57,25:$Va,27:$Vb,28:$Vc},o($Vh,[2,13],{16:58,4:$V2,10:$V8}),o($Vi,[2,22]),o($Vi,[2,24]),o($Vj,[2,27],{26:$Ve,27:$Vf}),o($Vd,[2,17]),o($Vg,[2,31]),o($Vg,[2,32]),o($Vg,[2,34]),{4:[1,59],26:$Ve,27:$Vf},o($Vi,[2,23]),o($Vd,[2,20])],
+defaultActions: {9:[2,4],13:[2,3]},
 parseError: function parseError(str, hash) {
     if (hash.recoverable) {
         this.trace(str);
@@ -318,126 +392,165 @@ var exprFun = (function() {
 	return plusfunc;
 }());
 
+var instruction = (function() {
+	function instruction(symbol, expressions, loc) {
+		this.symbol = symbol;
+		this.expressions = expressions;
+		this.loc = loc;
+	}
+
+	instruction.prototype.generate = function(method, specs) {
+		var me = this,
+			bcIdx = method.byteCode.length;
+			eIdx = 0,
+			i  = 0;
+
+		if (!specs.hasOwnProperty(this.symbol)) {
+			method.errors.push(["Unknown instruction " + this.symbol, this.loc]);
+			method.byteCode.push(0xEE);
+			return;
+		}
+
+		var nmbr  = specs[this.symbol][0],
+			exprs = specs[this.symbol][1],
+			exprlimit = Math.min(exprs.length, this.expressions.length),
+			e = this.expressions;
+
+		method.byteCode.push(nmbr);
+
+		if (this.expressions.length < exprs.length) {
+			method.errors.push(["Missing expressions according to spec " + exprs, this.loc]);
+		} else if (this.expressions.length > exprs.length) {
+			method.errors.push(["Too many expressions according to spec " + exprs, this.loc]);
+		}
+
+		for (i = 0; i < exprlimit; i++) {
+			var p = exprs[i];
+			switch(p) {
+			case 'byte':
+				method.byteCode.push(e[i](method));
+				break;
+			case 'label':
+				var staticAddr = bcIdx;
+				var bcIndex = method.byteCode.length;
+				var expIdx = i;
+				method.byteCode.push(0xEE, 0xEE);
+				method.resolvers.push(function(offset, constantpool, methods, labels) {
+					var lbl = e[expIdx](method, true);
+					//console.log("Going from", bcIdx, "to label", labels[lbl]);
+					var off;
+					
+					if (!labels.hasOwnProperty(lbl)) {
+						method.errors.push("Unmatched label '" + lbl + "'", me.loc);
+						off = 0;
+					} else {
+						off = labels[lbl] - staticAddr;
+					}
+
+					method.byteCode[bcIndex]     = (off & (~255)) >> 8;
+					method.byteCode[bcIndex + 1] = off & 255;
+				});
+				break;
+			case 'varnum':
+				method.byteCode.push(e[i](method));
+				break;
+			case 'varnum-wide':
+				var off = e[i](method);
+				if (off > 0xFF) {
+					method.byteCode.push((off & (~255)) >> 8);
+				}
+				method.byteCode.push(off & 255);
+				break;
+			case 'method':
+				var bcIndex = method.byteCode.length;
+				var expIdx = i;
+				method.byteCode.push(0xEE, 0xEE);
+				method.resolvers.push(function(offset, constantpool, methods, labels){
+					var mname = e[expIdx](method, true);
+					var midx = 0;
+					if (!methods.hasOwnProperty(mname)) {
+						method.errors.push(
+							["Invoking non-existant method '" + mname + "'", me.loc]);
+					} else {
+						midx = methods[e[expIdx](method, true)];
+					}
+					method.byteCode[bcIndex]     = (midx & (~255)) >> 8;
+					method.byteCode[bcIndex + 1] = midx & 255;
+				});
+				break;
+			case 'constant':
+				var v = e[i](method);
+				method.byteCode.push(nmbr);
+				var bcIndex = method.byteCode.length;
+
+				method.byteCode.push(0xEE, 0xEE);
+
+				method.resolvers.push(function(offset, constantpool, methods, labels) {
+					var idx = constantpool.indexOf[v];
+					if (idx == -1) {
+						idx = constantpool.length;
+						constantpool.push(v);
+					}
+					method.byteCode[bcIndex]     = (idx & (~255)) >> 8;
+					method.byteCode[bcIndex + 1] = idx & 255;
+				});
+			}
+		}
+
+		for (i = 0; i < method.byteCode.length - bcIdx; i++) {
+			method.bcToLine[bcIdx + i] = this.loc.first_line;
+		}
+	};
+
+	return instruction;
+}());
+
 var method = (function() {
-	function method(name, directives, insns) {
-		this.name = name;
-		this.locals = {};
-		this.labels = {};
-		this.insns  = [];
-		this.nlocals = 0;  // Amount of local variables
-		this.nparms  = 1;  // Amount of parameters
-		this.nBytes  = 4;
-		this.byteCode = [];
+	function method(name, directives, insns, loc) {
+		this.loc       = loc;
+		this.name      = name;
+		this.locals    = {};
+		this.labels    = {};
+		this.insns     = insns;
+		this.nlocals   = null;  // Amount of local variables
+		this.nargs     = 1;   // Amount of parameters, default 1.
+		this.nBytes    = 4;
+		this.byteCode  = [];
+		this.errors    = [];
+		this.resolvers = [];
+		this.bcToLine  = {};
 
 		var me = this;
 
-		directives.forEach(function(e, idx) {
-			if (typeof e === 'function') {
-				me.locals = e(me.locals);
-			} else if (e[0] === 'LOCALS') {
-				me.nlocals = e[1](me.locals);
-			} else if (e[0] === 'ARGS') {
-				me.nparms = e[1](me.locals);
-			}
+		directives.forEach(function(e) {
+			e(me);
+			//console.log(e);	
 		});
 
-		insns.forEach(function(e) {
-			var insn = e[0];
-			var f = null;
-			var bc = [];
+		if (this.nlocals === null) {
+			this.nlocals = 0;
+		}
 
-			// f takes 'm', which is local variables, 'c' which is the
-			// constant pool and 'methods' which are the procedures.
-			f = function(m, c, methods) {
-				if (insn === 'LABEL') {
-					me.labels[e[1]] = me.nBytes;
-					console.log("Label", e[1], "at", me.nBytes);
-					return [];
-				}
-
-				if (!m.hasOwnProperty(insn)) {
-					throw new Error("Unable to find instruction");
-				}
-
-				var bc = [];
-				var t = m[insn];
-				me.nBytes += 1;
-				bc.push(t[0]);
-
-				t[1].forEach(function(p) {
-					switch(p) {
-					case 'byte':
-						me.nBytes += 1;
-						bc.push(e[1](me.locals));
-						break;
-					case 'label':
-						var staticAddr = me.nBytes - 1;
-						me.nBytes += 2;
-						bc.push(function() {
-							console.log("Going from", me.nBytes, "to label", me.labels[e[1]]);
-							var off = me.labels[e[1]] - staticAddr;
-							var bc = [];
-							bc.push((off & (~255)) >> 8);
-							bc.push(off & 255);
-							return bc;
-						});
-						break;
-					case 'varnum':
-						me.nBytes += 1;
-						bc.push(e[1](me.locals));
-						break;
-					case 'varnum-wide':
-						me.nBytes += 1;
-						var off = e[1](me.locals);
-						//bc.push((off & (~255)) >> 8);
-						bc.push(off & 255);
-						break;
-					case 'method':
-						me.nBytes += 2;
-						var midx = methods[e[1]];
-						bc.push((midx & (~255)) >> 8);
-						bc.push(midx & 255);
-						break;
-					case 'constant':
-						me.nBytes += 2;
-						var v = e[1](me.locals);
-						var idx = c.indexOf[v];
-						if (idx == -1) {
-							idx = c.length
-							c.push(v)
-						}
-						bc.push((idx & (~255)) >> 8);
-						bc.push(idx & 255);
-						break;
-					}
-				});
-
-				return bc;
-			}
-
-			me.insns.push(f);
-		});
+		this.byteCode.push(
+			this.nargs >> 8,
+			this.nargs & 0xFF,
+			this.nlocals >> 8,
+			this.nlocals & 0xFF
+		);
 	}
 
 	method.prototype.generateBytecode = function(m, constantPool, methods) {
 		var me = this;
-		var bc = [];
-		bc.push((this.nparms & (~255)) >> 8);
-		bc.push(this.nparms & 255);
-		bc.push((this.nlocals & (~255)) >> 8);
-		bc.push(this.nlocals & 255);
+		//var bc = [];
+
+		for (var i = 0; i < 4; i++) {
+			this.bcToLine[i] = this.loc.first_line;
+		}
 
 		this.insns.forEach(function(e) {
-			var ibc = e(m, constantPool, methods);
-			bc = bc.concat(ibc);
-		});
-
-		bc.forEach(function(c) {
-			if (typeof c === 'function') {
-				me.byteCode = me.byteCode.concat(c())
-			} else {
-				me.byteCode.push(c);
-			}
+			//var ibc = e(m, constantPool, methods);
+			e.generate(me, m);
+			//bc = bc.concat(ibc);
 		});
 	};
 
@@ -772,7 +885,7 @@ options: {"case-insensitive":true},
 performAction: function anonymous(yy,yy_,$avoiding_name_collisions,YY_START) {
 var YYSTATE=YY_START;
 switch($avoiding_name_collisions) {
-case 0:return 7;
+case 0:return 4;
 break;
 case 1:/* skip whitespace */
 break;
@@ -780,78 +893,38 @@ case 2:/* skip singeline comment */
 break;
 case 3:/* skip multiline comments (no nesting) */
 break;
-case 4:return 19;
+case 4:return 25;
 break;
-case 5:return 25;
+case 5:return 9;
 break;
-case 6:return 26;
+case 6:return 18;
 break;
-case 7:return 27;
+case 7:return 20;
 break;
-case 8:return 28;
+case 8:return 21;
 break;
-case 9:return 29;
+case 9:return 28;
 break;
-case 10:return 30;
+case 10:return 29;
 break;
-case 11:return 31;
+case 11:return 26;
 break;
-case 12:return 32;
+case 12:return 27;
 break;
-case 13:return 33;
+case 13:return 22;
 break;
-case 14:return 35;
+case 14:return 'COMMA';
 break;
-case 15:return 36;
+case 15:return 24;
 break;
-case 16:return 37;
+case 16:return 10;
 break;
-case 17:return 38;
-break;
-case 18:return 39;
-break;
-case 19:return 40;
-break;
-case 20:return 41;
-break;
-case 21:return 42;
-break;
-case 22:return 43;
-break;
-case 23:return 44;
-break;
-case 24:return 45;
-break;
-case 25:return 9;
-break;
-case 26:return 14;
-break;
-case 27:return 16;
-break;
-case 28:return 17;
-break;
-case 29:return 22;
-break;
-case 30:return 23;
-break;
-case 31:return 20;
-break;
-case 32:return 21;
-break;
-case 33:return 18;
-break;
-case 34:return 34;
-break;
-case 35:return 46;
-break;
-case 36:return 10;
-break;
-case 37:return 5;
+case 17:return 7;
 break;
 }
 },
-rules: [/^(?:\n+)/i,/^(?:[^\n\S]+)/i,/^(?:\/\/[^\n]*)/i,/^(?:\/\*(.|\n|\r)*?\*\/)/i,/^(?:([0-9]+|0x[0-9A-F]+)\b)/i,/^(?:bipush\b)/i,/^(?:dup\b)/i,/^(?:goto\b)/i,/^(?:iadd\b)/i,/^(?:iand\b)/i,/^(?:ifeq\b)/i,/^(?:iflt\b)/i,/^(?:if_icmpeq\b)/i,/^(?:iinc\b)/i,/^(?:iload\b)/i,/^(?:invokevirtual\b)/i,/^(?:ior\b)/i,/^(?:ireturn\b)/i,/^(?:istore\b)/i,/^(?:isub\b)/i,/^(?:ldc_w\b)/i,/^(?:nop\b)/i,/^(?:pop\b)/i,/^(?:swap\b)/i,/^(?:wide\b)/i,/^(?:\.method\b)/i,/^(?:\.args\b)/i,/^(?:\.locals\b)/i,/^(?:\.define\b)/i,/^(?:\()/i,/^(?:\))/i,/^(?:\+)/i,/^(?:-)/i,/^(?:=)/i,/^(?:,)/i,/^(?::)/i,/^(?:[a-zA-Z]\w*)/i,/^(?:$)/i],
-conditions: {"INITIAL":{"rules":[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37],"inclusive":true}}
+rules: [/^(?:\n)/i,/^(?:[^\n\S]+)/i,/^(?:\/\/[^\n]*)/i,/^(?:\/\*(.|\n|\r)*?\*\/)/i,/^(?:([0-9]+|0x[0-9A-F]+)\b)/i,/^(?:\.method\b)/i,/^(?:\.args\b)/i,/^(?:\.locals\b)/i,/^(?:\.define\b)/i,/^(?:\()/i,/^(?:\))/i,/^(?:\+)/i,/^(?:-)/i,/^(?:=)/i,/^(?:,)/i,/^(?::)/i,/^(?:[a-zA-Z]\w*\b)/i,/^(?:$)/i],
+conditions: {"INITIAL":{"rules":[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17],"inclusive":true}}
 });
 return lexer;
 })();

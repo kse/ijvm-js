@@ -2,65 +2,80 @@
 
 define(['ijvm'], function(ijvm) {
 		return (function() {
-			function bytecode(ijvmCode) {
-				this.takesParameters = false;
-				var ast = ijvm.parse(ijvmCode);
+			function bytecode(data) {
+				var ast = ijvm.parse(data);
 				var constantPool = [];
-				var methods      = {};
+				var methods      = {},
+					methodoffsets = {},
+					me = this;
 				var i, sum = 0;
+				this.errors = [];
+				this.bcToLine = {};
+
+				var spec = {
+					'bipush':        [0x10, ['byte']],
+					'dup':           [0x59, []],
+					'goto':          [0xA7, ['label']],
+					'iadd':          [0x60, []],
+					'iand':          [0x7E, []],
+					'ifeq':          [0x99, ['label']],
+					'iflt':          [0x9B, ['label']],
+					'if_icmpeq':     [0x9F, ['label']],
+					'iinc':          [0x84, ['varnum', 'byte']],
+					'iload':         [0x15, ['varnum-wide']],
+					'invokevirtual': [0xB6, ['method']],
+					'ior':           [0x80, []],
+					'ireturn':       [0xAC, []],
+					'istore':        [0x36, ['varnum-wide']],
+					'isub':          [0x64, []],
+					'ldc_w':         [0x13, ['constant']],
+					'nop':           [0x00, []],
+					'pop':           [0x57, []],
+					'swap':          [0x5F, []],
+					'wide':          [0xC4, []],
+					'dec':           [0x78, []],
+				};
+
 				ast.forEach(function(e) {
-					methods[e.name] = constantPool.length;
-					constantPool.push(0);
+					var key = 0;
+					if (methodoffsets.hasOwnProperty(e.name)) {
+						this.errors.push(["Duplicate method name " + e.name, e.loc]);
+					} else {
+						methodoffsets[e.name] = constantPool.length;
+						e.methodAreaLocation  = constantPool.length;
+						constantPool.push(sum);
+					}
+
+					methods[e.name] = e;
+					e.generateBytecode(spec, constantPool, methodoffsets);
+
+					// Translate instruction numbers to lines in the IJVM code.
+					for (key in e.bcToLine) {
+						if (e.bcToLine.hasOwnProperty(key)) {
+							//console.log(sum, key, e.bcToLine[key]);
+							me.bcToLine[parseInt(sum, 10) + parseInt(key, 10)]
+								= e.bcToLine[key];
+						}
+					}
+					sum += e.byteCode.length;
 				});
 
 				ast.forEach(function(e) {
-					e.generateBytecode({
-						'bipush':        [0x10, ['byte']],
-						'dup':           [0x59, []],
-						'goto':          [0xA7, ['label']],
-						'iadd':          [0x60, []],
-						'iand':          [0x7E, []],
-						'ifeq':          [0x99, ['label']],
-						'iflt':          [0x9B, ['label']],
-						'if_icmpeq':     [0x9F, ['label']],
-						'iinc':          [0x84, ['varnum', 'byte']],
-						'iload':         [0x15, ['varnum-wide']],
-						'invokevirtual': [0xB6, ['method']],
-						'ior':           [0x80, []],
-						'ireturn':       [0xAC, []],
-						'istore':        [0x36, ['varnum-wide']],
-						'isub':          [0x64, []],
-						'ldc_w':         [0x13, ['constant']],
-						'nop':           [0x00, []],
-						'pop':           [0x57, []],
-						'swap':          [0x5F, []],
-						'wide':          [0xC4, []],
-						'dec':           [0x78, []],
-					}, constantPool, methods);
+					e.resolvers.forEach(function(b) {
+						b(0, constantPool, methodoffsets, e.labels);
+					});
 				});
 
 				var bc = [];
 
 				for (i = 0; i < ast.length; i++) {
-					constantPool[i] = sum;
 					sum += ast[i].nBytes;
-
 					bc = bc.concat(ast[i].byteCode);
+
+					this.errors = this.errors.concat(ast[i].errors);
 				}
 
-				this.constantPool = constantPool;
-				this.byteCode     = bc;
-				this.methods      = methods;
-
-				// TODO: Check if we have a main method
-				if (ast[methods.main].nparms > 1) {
-					this.takesParameters = true;
-					this.nparms = ast[methods.main].nparms - 1;
-				}
-
-				/*
-				var str = "",
-					el;
+				var str = "", el;
 				for (i = 0; i < bc.length; i++) {
 					el = bc[i].toString(16);
 					if (bc[i] < 0)
@@ -79,7 +94,11 @@ define(['ijvm'], function(ijvm) {
 						str += ' ';
 					}
 				}
-				*/
+				console.log(str);
+
+				this.constantPool = constantPool;
+				this.byteCode = bc;
+				this.methods = methods;
 			}
 
 			return bytecode;

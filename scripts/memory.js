@@ -19,6 +19,7 @@ define([],
 			this.memoryWriteCallback = f;
 		};
 
+		// This functions handles 32bit aligned reads from main memory.
 		memory.prototype.read = function() {
 			var me = this,
 				idx = this.registers.MAR;
@@ -30,8 +31,19 @@ define([],
 				if (typeof me.registerWriteCallback === 'function') {
 					me.registerWriteCallback('MDR', me.stackArea[idx - me.methodAreaWords]);
 				}
-				me.registers.MDR = me.stackArea[idx - me.methodAreaWords];
-				//console.log("read on stack index", idx, "(" + (idx - me.methodAreaWords) + ")",  "value", me.registers.MDR);
+
+				var readIdx = idx - me.methodAreaWords;
+				if (readIdx >= me.stackArea.length) {
+					me.registers.MDR = 0;
+					console.log("Warning: Reading beyond allocated memory");
+				} else if (readIdx < 0) {
+					me.registers.MDR = 0;
+					console.log("Warning: Reading below allocated memory");
+				} else {
+					me.registers.MDR = me.stackArea[readIdx];
+				}
+
+				console.log("Read on stack index", idx, "(" + readIdx + ")",  "value", me.registers.MDR);
 			});
 		};
 
@@ -48,7 +60,7 @@ define([],
 				if (typeof me.memoryWriteCallback === 'function') {
 					me.memoryWriteCallback(value, idx);
 				}
-				//console.log("Writing", value, "on stack index", idx, "(" + (idx - me.methodAreaWords) + ")");
+				console.log("Writing", value, "on stack index", idx, "(" + (idx - me.methodAreaWords) + ")");
 				me.stackArea[idx - me.methodAreaWords] = value;
 			});
 		};
@@ -57,16 +69,27 @@ define([],
 			var me = this,
 				idx = this.registers.PC;
 
+			// If we have no waiting fetches, push an empty on so we have
+			// correct timing.
 			if (this.maQueue.length === 0) {
 				this.maQueue.push(null);	
 			}
 
+			console.log("Reading into MBR", idx, "length", me.methodArea.length);
 			this.maQueue.push(function() {
-				if (typeof me.registerWriteCallback === 'function') {
-					me.registerWriteCallback('MBR', me.methodArea[idx]);
+				if (idx >= me.methodArea.length) {
+					idx -= me.methodArea.length;
+
+					console.log("Reading from stack:", parseInt(Math.floor(idx/4), 10), (0xFF << (idx % 4)));
+					me.registers.MBR = me.stackArea[parseInt(Math.floor(idx/4), 10)] & (0xFF << (idx % 4));
+					me.registers.MBRU = me.registers.MBR;
+				} else {
+					if (typeof me.registerWriteCallback === 'function') {
+						me.registerWriteCallback('MBR', me.methodArea[idx]);
+					}
+					me.registers.MBR = me.methodArea[idx];
+					me.registers.MBRU = me.methodArea[idx];
 				}
-				me.registers.MBR = me.methodArea[idx];
-				me.registers.MBRU = me.methodArea[idx];
 			});
 		};
 

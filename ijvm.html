@@ -2,65 +2,124 @@
 <html lang="en">
 <head>
 	<title>Visual IJVM</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+
 	<link rel="stylesheet"
-	   href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css"
+	   href="css/bootstrap.min.css"
 	media="all" />
 
-	<style>
-		.editor-highlight {
-			background-color: #dff0d8;
-		}
+	<link rel="stylesheet"
+	   href="css/bootstrap-theme.css"
+	media="all" />
 
-		.register {
-			width: 100px;
-			height: 50px;
-			border: 1px solid;
-			text-align: center;
-			margin: 0px auto;
-		}
+	<link type="text/css" rel="stylesheet"
+		href="css/main.css"/>
 
-		.control-group {
-			text-align: center;
-			margin: 10px;
-		}
+	<link type="text/css" rel="stylesheet"
+		href="https://golden-layout.com/files/latest/css/goldenlayout-base.css"/>
+	<link type="text/css" rel="stylesheet"
+		href="https://golden-layout.com/files/latest/css/goldenlayout-light-theme.css"/>
 
-		.invisible {
-			display: none;
-		}
+	<script data-main="scripts/main" src="lib/require.js"></script>
 
-		#editor-nav {
-			padding: 5px 0px;
-		}
+	<template id="visual-template">
+		<div class="stack"> Stack: <p id="stack"   > </p></div>
+		<svg width="500" height="490" xmlns="http://www.w3.org/2000/svg"
+			version="1.1"
+			text-rendering="optimizeLegibility">
 
-		.editor {
-			width: 100%;
-			height: 800px;
-		}
+			<rect x="0" y="0" width="120" height="30" fill="none" stroke="black" stroke-width="2px"/>
+			<text x="5"  y="20" id="sMAR" style="font-family: Helvetica Neue; font-size: 14;">MAR</text>
 
-		.stack-element {
-			width: 100%;
-			height: 30px;
-			padding: 10px;
-		}
+			<rect x="0" y="50" width="120" height="30" fill="none" stroke="black"/>
+			<text x="5"  y="70" id="sMBR" style="font-family: Helvetica Neue; font-size: 14;">MBR</text>
 
-		.stackarea {
-			padding-top: 40px;
-		}
+			<rect x="0" y="100" width="120" height="30" fill="none" stroke="black"/>
+			<text x="5"  y="120" id="sMDR" style="font-family: Helvetica Neue; font-size: 14;">MDR</text>
 
-		.arglabel {
-			text-align: right;
-			width: 100%;
-		}
+			<rect x="0" y="150" width="120" height="30" fill="none" stroke="black"/>
+			<text x="5"  y="170" id="sPC" style="font-family: Helvetica Neue; font-size: 14;">PC</text>
 
-		.small {
-			font-size:10px;
-		}
+			<rect x="0" y="200" width="120" height="30" fill="none" stroke="black"/>
+			<text x="5"  y="220" id="sSP" style="font-family: Helvetica Neue; font-size: 14;">SP</text>
 
-		#arg-input {
-			width: 100%;
-		}
-	</style>
-	<script data-main="scripts/main" src="scripts/require.js"></script>
+			<rect x="0" y="250" width="120" height="30" fill="none" stroke="black"/>
+			<text x="5"  y="270" id="sLV" style="font-family: Helvetica Neue; font-size: 14;">LV</text>
+
+			<rect x="0" y="300" width="120" height="30" fill="none" stroke="black"/>
+			<text x="5"  y="320" id="sCPP" style="font-family: Helvetica Neue; font-size: 14;">CPP</text>
+
+			<rect x="0" y="350" width="120" height="30" fill="none" stroke="black"/>
+			<text x="5"  y="370" id="sTOS" style="font-family: Helvetica Neue; font-size: 14;">TOS</text>
+
+			<rect x="0" y="400" width="120" height="30" fill="none" stroke="black"/>
+			<text x="5"  y="420" id="sOPC" style="font-family: Helvetica Neue; font-size: 14;">OPC</text>
+
+			<rect x="0" y="450" width="120" height="30" fill="none" stroke="black"/>
+			<text x="5"  y="470" id="sH" style="font-family: Helvetica Neue; font-size: 14;">MAR</text>
+
+			<rect x="280" y="100" width="120" height="16" fill="none" stroke="black"/>
+			<text x="320" y="109" id="sNA" style="font-family: Helvetica Neue; font-size: 12;"
+				alignment-baseline="middle">...</text>
+
+		</svg>
+	</template>
+
+	<template id="editor-tab-template">
+		<div class="editor-header text-center">
+			<div class="btn-group" role="group">
+				<button type="button" class="btn btn-success btn-sm savefile" title="Save file">
+					<span class="glyphicon glyphicon-save"></span>
+				</button>
+				<button type="button" class="btn btn-danger btn-sm removefile">
+					<span class="glyphicon glyphicon-remove-sign"></span>
+				</button>
+			</div>
+		</div>
+
+		<div class="editor-main">
+		</div>
+	</template>
+
+	<template id="machine-template">
+	<div class="container-fluid">
+		<div class="row">
+			<div class="col-xs-12 text-center">
+			<h3>Machine Controls</h3>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-xs-3 text-center">
+				<div class="btn-group-vertical" id="control-container">
+					<button type="button" class="btn btn-danger toggleable" id="btn-compile" disabled title="Compile the currently active IJVM program">
+						<span class="glyphicon glyphicon-off"></span>
+					</button>
+					<button type="button" class="btn btn-default toggleable" id="btn-step" disabled title="Single step through microcode instructions for the currently active IJVM program">
+						<span class="glyphicon glyphicon-play"></span>
+					</button>
+					<button type="button" class="btn btn-default toggleable" id="btn-run" disabled title="Fast-forward until IJVM program stops">
+						<span class="glyphicon glyphicon-forward"></span>
+					</button>
+					<!-- <button type="button" class="btn btn-default toggleable" disabled title="Reset the machine">
+						<span class="glyphicon glyphicon-repeat"></span>
+					</button>-->
+					<button type="button" class="btn btn-default" id="open-mal" title="Drag to open microcode editor">
+						<span class="glyphicon glyphicon-hdd"></span>
+					</button>
+				</div>
+			</div>
+			<div class="col-xs-9" id="file-container">
+				<ul class="list-group">
+					<span>
+					</span>
+					<li class="btn btn-default list-group-item text-center" title="Create new IVJM file" id="new-ijvm-program">
+							<span class="glyphicon glyphicon-plus"></span>
+					</li>
+				</ul>
+			</div>
+		</div>
+	</div>
+	</template>
 </head>
 <body>
 	<div class="container-fluid">
@@ -68,111 +127,16 @@
 	<input type="hidden" id="ijvmcode"/>
 
 
-	<div class="col-sm-12">
-		<!-- Container of the left column -->
-		<div class="col-sm-6">
-			<div class="col-sm-10">
-				<div class="stack"> Stack: <p id="stack"   > </p></div>
-				<svg width="500" height="490" xmlns="http://www.w3.org/2000/svg"
-					version="1.1"
-					text-rendering="optimizeLegibility">
-
-					<rect x="0" y="0" width="120" height="30" fill="none" stroke="black" stroke-width="2px"/>
-					<text x="5"  y="20" id="sMAR" style="font-family: Helvetica Neue; font-size: 14;">MAR</text>
-
-					<rect x="0" y="50" width="120" height="30" fill="none" stroke="black"/>
-					<text x="5"  y="70" id="sMBR" style="font-family: Helvetica Neue; font-size: 14;">MBR</text>
-
-					<rect x="0" y="100" width="120" height="30" fill="none" stroke="black"/>
-					<text x="5"  y="120" id="sMDR" style="font-family: Helvetica Neue; font-size: 14;">MDR</text>
-
-					<rect x="0" y="150" width="120" height="30" fill="none" stroke="black"/>
-					<text x="5"  y="170" id="sPC" style="font-family: Helvetica Neue; font-size: 14;">PC</text>
-
-					<rect x="0" y="200" width="120" height="30" fill="none" stroke="black"/>
-					<text x="5"  y="220" id="sSP" style="font-family: Helvetica Neue; font-size: 14;">SP</text>
-
-					<rect x="0" y="250" width="120" height="30" fill="none" stroke="black"/>
-					<text x="5"  y="270" id="sLV" style="font-family: Helvetica Neue; font-size: 14;">LV</text>
-
-					<rect x="0" y="300" width="120" height="30" fill="none" stroke="black"/>
-					<text x="5"  y="320" id="sCPP" style="font-family: Helvetica Neue; font-size: 14;">CPP</text>
-
-					<rect x="0" y="350" width="120" height="30" fill="none" stroke="black"/>
-					<text x="5"  y="370" id="sTOS" style="font-family: Helvetica Neue; font-size: 14;">TOS</text>
-
-					<rect x="0" y="400" width="120" height="30" fill="none" stroke="black"/>
-					<text x="5"  y="420" id="sOPC" style="font-family: Helvetica Neue; font-size: 14;">OPC</text>
-
-					<rect x="0" y="450" width="120" height="30" fill="none" stroke="black"/>
-					<text x="5"  y="470" id="sH" style="font-family: Helvetica Neue; font-size: 14;">MAR</text>
-
-					<rect x="280" y="100" width="120" height="16" fill="none" stroke="black"/>
-					<text x="320" y="109" id="sNA" style="font-family: Helvetica Neue; font-size: 12;"
-						alignment-baseline="middle">...</text>
-
-				</svg>
-			</div>
-
-			<div class="col-sm-2" class="stackarea" id="stackarea">
-			</div>
-
-			<!-- Contains the buttons on top of right column. -->
-			<div class="col-sm-12">
-				<div class="btn-group btn-group-justified control-group" role="group">
-					<div class="btn-group" role="group">
-					<button type="button" class="btn btn-default" id="btn-reset">RESET</button>
-					</div>
-
-					<div class="btn-group" role="group">
-					<button type="button" class="btn btn-default" id="btn-step">STEP</button>
-					</div>
-
-					<div class="btn-group" role="group">
-					<button type="button" class="btn btn-default" id="btn-run">RUN</button>
-					</div>
-
-					<div class="btn-group" role="group">
-					<button type="button" class="btn btn-default" id="btn-compile">RECOMPILE</button>
-					</div>
-				</div>
-			</div>
-
-			<div class="col-sm-6 pull-right">
-			<div class="col-sm-6">
-				<div class="arglabel">
-					<label for="arg-input">Arguments <span class="small">(space separated)</span>:</label>
-				</div>
-			</div>
-			<div class="col-sm-6 pull-right">
-				<input type="text" id="arg-input"/>
-			</div>
-			</div>
-
-		</div>
-
-		<!-- Container of the right column -->
-		<div class="col-sm-6">
-			<div class="col-sm-12">
-				<ul class="nav nav-pills nav-justified" id="editor-nav">
-				  <li data-display='ijvm-editor' role="presentation" class="active"><a href="#ijvm">IJVM Editor</a></li>
-				  <li data-display='mal-editor' role="presentation"><a href="#mal">MAL Code</a></li>
-				</ul>
-			</div>
-			<div class="col-sm-12" id="editor-container">
-				<div class="editor" id="ijvm-editor"></div>
-				<div class="editor invisible" id="mal-editor"></div>
-			</div>
-	</div>
-
-	</div>
-
 	<script type="text/javascript"
-		 src="//code.jquery.com/jquery-2.1.4.min.js">
+		 src="lib/jquery-2.2.4.min.js">
 	</script>
 
 	<script type="text/javascript"
-		 src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js">
+		 src="lib/bootstrap.min.js">
+	</script>
+
+	<script type="text/javascript"
+		 src="lib/underscore-min.js">
 	</script>
 </body>
 </html>

@@ -74,6 +74,17 @@ require(['jQuery', 'machine', 'aceEditor',
 				});
 			}
 
+			function stopMachine() {
+				$('#control-container .toggleable').prop('disabled', true);
+				$('#btn-compile').removeClass('btn-success').addClass('btn-danger');
+				mic1 = null;
+				MAL = null;
+				IJVM = null;
+				if (ijvmEditor !== null) {
+					ijvmEditor.editor.setReadOnly(false);
+				}
+			}
+
 			function initializeDockerLayout() {
 				// Document = ace.require('ace/document').Document,
 
@@ -222,12 +233,9 @@ require(['jQuery', 'machine', 'aceEditor',
 					});
 
 					container.on('destroy', function() {
-						$('#control-container .toggleable').prop('disabled', true);
-						$('#btn-compile').removeClass('btn-success').addClass('btn-danger');
 						ijvmEditor = null;
-						mic1 = null;
-						MAL = null;
-						IJVM = null;
+						$('#btn-compile').prop('disabled', true);
+						stopMachine();
 					});
 				});
 
@@ -354,18 +362,8 @@ require(['jQuery', 'machine', 'aceEditor',
 				$('#btn-compile').removeClass('btn-danger').addClass('btn-success');
 			}
 
-			$("#btn-reset").click(function() {
-				//stack.reset();
-				if (mic1 !== null && mic1.started) {
-					mic1.reset();
-					//malEditor.clearHighlight();
-					mic1.refreshRegisterCallback();
-					mic1.refreshStackCallback();
-					startMic1();
-				}
-			});
-
-			$("#btn-compile").click(function() {
+			function initializeMachine() {
+				ijvmEditor.editor.setReadOnly(true);
 				MAL = malCompiler(microCode);
 				IJVM = new ijvmCompiler(ijvmEditor.getContents());
 				console.log(IJVM);
@@ -429,6 +427,29 @@ require(['jQuery', 'machine', 'aceEditor',
 				mic1.refreshRegisterCallback();
 				mic1.refreshStackCallback();
 				startMic1();
+			}
+
+			$("#btn-reset").click(function() {
+				//stack.reset();
+				if (mic1 !== null && mic1.started) {
+					mic1.reset();
+					//malEditor.clearHighlight();
+					mic1.refreshRegisterCallback();
+					mic1.refreshStackCallback();
+					startMic1();
+				}
 			});
 
+			$("#btn-compile").click(function(e) {
+				//var btn = $(e.target);
+				if (IJVM === null) {
+					initializeMachine();
+				} else {
+					stopMachine();
+				}
+			});
+
+			$('#btn-reset').click(function() {
+				initializeMachine();
+			});
 		});

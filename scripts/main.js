@@ -92,7 +92,7 @@ require(['jQuery', 'machine', 'aceEditor',
 				var goldenLayout = new GoldenLayout({
 					settings: {
 						showPopoutIcon: false,
-						selectionEnabled: true,
+						selectionEnabled: false,
 					},
 					content: [{
 						type: 'row',
@@ -402,7 +402,7 @@ require(['jQuery', 'machine', 'aceEditor',
 				mic1.setInstructionCallback(function(mOp, na) {
 					//console.log(mOp);
 					//console.log(mic1.memory.stackArea.slice(0, mic1.registers.PC).join(','));
-					//console.log(mic1.memory.stackArea.slice(mic1.constantPool.length).join(','));
+					console.log(mic1.memory.stackArea.slice(mic1.constantPool.length).join(','));
 					if (malEditor !== null) {
 						if (isInt(mOp.lineNumber)) {
 							malEditor.scrollTo(mOp.lineNumber - 1);
@@ -440,8 +440,7 @@ require(['jQuery', 'machine', 'aceEditor',
 				}
 			});
 
-			$("#btn-compile").click(function(e) {
-				//var btn = $(e.target);
+			$("#btn-compile").click(function() {
 				if (IJVM === null) {
 					initializeMachine();
 				} else {

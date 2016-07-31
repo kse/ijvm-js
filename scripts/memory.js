@@ -28,10 +28,6 @@ define([],
 			}
 
 			this.memQueue.push(function() {
-				if (typeof me.registerWriteCallback === 'function') {
-					me.registerWriteCallback('MDR', me.stackArea[idx - me.methodAreaWords]);
-				}
-
 				var readIdx = idx - me.methodAreaWords;
 				if (readIdx >= me.stackArea.length) {
 					me.registers.MDR = 0;
@@ -41,6 +37,15 @@ define([],
 					console.log("Warning: Reading below allocated memory");
 				} else {
 					me.registers.MDR = me.stackArea[readIdx];
+				}
+
+				if (me.registers.MDR === undefined) {
+					me.registers.MDR = 0;
+					me.stackArea[readIdx] = 0;
+				}
+
+				if (typeof me.registerWriteCallback === 'function') {
+					me.registerWriteCallback('MDR', me.registers.MDR);
 				}
 
 				console.log("Read on stack index", idx, "(" + readIdx + ")",  "value", me.registers.MDR);

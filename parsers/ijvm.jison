@@ -422,8 +422,8 @@ var method = (function() {
 		this.locals    = {};
 		this.labels    = {};
 		this.insns     = insns;
-		this.nlocals   = null;  // Amount of local variables
-		this.nargs     = 1;   // Amount of parameters, default 1.
+		this.nlocals   = null;  // Amount of local variables, default 0.
+		this.nargs     = null;  // Amount of parameters, default 1.
 		this.nBytes    = 4;
 		this.byteCode  = [];
 		this.errors    = [];
@@ -439,6 +439,11 @@ var method = (function() {
 
 		if (this.nlocals === null) {
 			this.nlocals = 0;
+		}
+
+		if (this.nargs === null) {
+			// We always count OBJREF as a parameter.
+			this.nargs = 1;
 		}
 
 		this.byteCode.push(
